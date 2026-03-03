@@ -1,0 +1,81 @@
+---
+title: Security & Auth
+description: Authentication modes, API keys, and local network bypass.
+---
+
+Narratorr is a single-user, self-hosted application. The authenticated user is the server operator. Configure authentication in **Settings > Security**.
+
+## Authentication Modes
+
+### None (Default)
+
+No authentication. Anyone who can reach the Narratorr URL has full access. Suitable for isolated networks where only you have access.
+
+### Forms (Recommended)
+
+Cookie-based authentication with a login page. After entering your username and password, Narratorr sets a session cookie that keeps you logged in.
+
+- Sessions are signed with HMAC-SHA256
+- Cookies are `httpOnly` (not accessible to JavaScript)
+- Sessions last 7 days with sliding renewal — active use extends the session
+
+### Basic
+
+HTTP Basic Authentication. Your browser prompts for credentials on every new session. Simpler but less polished than Forms auth.
+
+## API Key
+
+An API key is auto-generated on first run. Use it for external integrations that can't go through browser-based auth.
+
+Pass the API key via:
+- **Header:** `X-Api-Key: your-api-key`
+- **Query parameter:** `?apikey=your-api-key`
+
+Find your API key in **Settings > Security**.
+
+## Local Network Bypass
+
+When enabled, requests from private IP addresses skip authentication entirely:
+- `10.x.x.x`
+- `172.16.x.x` – `172.31.x.x`
+- `192.168.x.x`
+- `localhost` / `127.0.0.1`
+
+**Off by default.** Enable in **Settings > Security** if all devices on your local network are trusted.
+
+This is useful for home lab setups where Narratorr sits behind a reverse proxy that handles external auth, and local services (like Audiobookshelf webhooks) need unauthenticated access.
+
+## How Credentials Are Stored
+
+- Passwords are hashed with **scrypt** using a unique random salt per user
+- Passwords are never stored in plain text
+- Comparison uses timing-safe equality to prevent timing attacks
+- Sessions are HMAC-SHA256 signed
+
+## Setup Guidance
+
+| Scenario | Recommended Mode |
+|----------|-----------------|
+| Home server, only you access it | Forms |
+| Behind a reverse proxy with its own auth | None + restrict access at proxy level |
+| Shared household, multiple people access | Forms |
+| Completely isolated network | None |
+| External access over the internet | Forms + HTTPS via reverse proxy |
+
+### Reverse Proxy Notes
+
+If Narratorr is behind a reverse proxy (Traefik, Caddy, nginx):
+- Configure the proxy to terminate HTTPS
+- Let Narratorr handle authentication internally (don't rely on proxy-level basic auth unless you prefer it)
+- Set the `CORS_ORIGIN` [environment variable](/configuration/environment-variables/) if the frontend is served from a different origin
+
+## Locked Out?
+
+If you misconfigure authentication and can't log in:
+
+1. Set the `AUTH_BYPASS=true` [environment variable](/configuration/environment-variables/)
+2. Restart Narratorr
+3. Access the UI and fix your security settings
+4. Remove `AUTH_BYPASS` and restart again
+
+See [Troubleshooting > Can't log in](/troubleshooting/#cant-log-in--locked-out).

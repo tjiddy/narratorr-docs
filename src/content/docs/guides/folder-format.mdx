@@ -1,0 +1,107 @@
+---
+title: Folder Format Tokens
+description: Complete reference for folder and file naming tokens and modifiers.
+---
+
+Narratorr uses token-based templates to name audiobook folders and files in your library. Configure these in **Settings > Library**.
+
+## Tokens
+
+| Token | Description | Example Value |
+|-------|-------------|---------------|
+| `{author}` | Author name | `Terry Goodkind` |
+| `{authorLastFirst}` | Author as Last, First | `Goodkind, Terry` |
+| `{title}` | Book title | `Wizards First Rule` |
+| `{titleSort}` | Title without leading articles | `Wizards First Rule` |
+| `{series}` | Series name | `The Sword of Truth` |
+| `{seriesPosition}` | Position in series | `01` |
+| `{year}` | Publication year | `1994` |
+| `{narrator}` | Narrator name | `Sam Tsoukalas` |
+| `{narratorLastFirst}` | Narrator as Last, First | `Tsoukalas, Sam` |
+| `{trackNumber}` | Chapter/track number (file format only) | `01` |
+| `{trackTotal}` | Total tracks (file format only) | `47` |
+| `{partName}` | Part or volume name (file format only) | `Book 1` |
+
+## Modifiers
+
+Tokens support two modifiers that control formatting:
+
+### Zero-Pad: `{token:00}`
+
+Pads numeric values with leading zeros to the specified width.
+
+| Expression | Input | Output |
+|-----------|-------|--------|
+| `{seriesPosition:00}` | `1` | `01` |
+| `{seriesPosition:000}` | `1` | `001` |
+| `{trackNumber:00}` | `3` | `03` |
+| `{year:00}` | `1994` | `1994` (already wider than 2) |
+
+Only applies to numeric token values. Non-numeric values are left as-is.
+
+### Conditional Suffix: `{token?text}`
+
+Appends `text` only if the token has a value. If the token is empty or missing, the entire expression (including the suffix) is omitted.
+
+| Expression | Has Value | No Value |
+|-----------|-----------|----------|
+| `{series? - }` | `The Sword of Truth - ` | *(nothing)* |
+| `{year? (}{year?)}` | See combined example below | *(nothing)* |
+
+### Combined: `{token:00?text}`
+
+Both modifiers can be used together — zero-pad first, then conditional suffix.
+
+| Expression | Input | Output |
+|-----------|-------|--------|
+| `{seriesPosition:00? - }` | `1` | `01 - ` |
+| `{seriesPosition:00? - }` | *(empty)* | *(nothing)* |
+
+## Examples
+
+### Folder Format
+
+**Simple** — `{author}/{title}`
+```
+Terry Goodkind/Wizards First Rule
+```
+
+**With series** — `{author}/{series?/}{title}`
+```
+Terry Goodkind/The Sword of Truth/Wizards First Rule
+```
+
+**With series position** — `{author}/{series? - }{seriesPosition:00? - }{title}`
+```
+Terry Goodkind/The Sword of Truth - 01 - Wizards First Rule
+```
+If no series: `Terry Goodkind/Wizards First Rule`
+
+**With year** — `{author}/{title} ({year})`
+```
+Terry Goodkind/Wizards First Rule (1994)
+```
+
+### File Format
+
+**Simple** — `{author} - {title}`
+```
+Terry Goodkind - Wizards First Rule.m4b
+```
+
+**With track number** — `{trackNumber:00} - {title}`
+```
+01 - Wizards First Rule.m4b
+02 - Wizards First Rule.m4b
+```
+
+## Defaults
+
+| Setting | Default |
+|---------|---------|
+| Folder Format | `{author}/{title}` |
+| File Format | `{author} - {title}` |
+
+## Validation
+
+Narratorr validates your format template when you save. Invalid tokens are flagged. The preview below the format field shows how a sample book would be named with your current template.

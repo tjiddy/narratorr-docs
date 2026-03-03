@@ -1,0 +1,81 @@
+---
+title: Remote Path Mappings
+description: Translate download client paths when containers see different filesystem layouts.
+---
+
+## When You Need Them
+
+Remote path mappings translate paths between your download client and Narratorr when they see the filesystem differently. This is common in Docker setups where each container has its own internal path structure.
+
+**Example problem:**
+- qBittorrent downloads to `/downloads/audiobooks/` (its internal container path)
+- qBittorrent reports this path to Narratorr via its API
+- Narratorr looks for `/downloads/audiobooks/` but its container maps downloads to `/data/downloads/`
+- Import fails with a "file not found" error
+
+**Solution:** A remote path mapping tells Narratorr to replace `/downloads/` with `/data/downloads/` when reading paths from that download client.
+
+## When You Don't Need Them
+
+If both containers share the same volume mount path, you don't need remote path mappings:
+
+```yaml
+# Both use /downloads — no mapping needed
+services:
+  narratorr:
+    volumes:
+      - /data/downloads:/downloads
+  qbittorrent:
+    volumes:
+      - /data/downloads:/downloads
+```
+
+The simplest setup is to use the same container path in both services.
+
+## Configuration
+
+Configure remote path mappings per download client in **Settings > Download Clients**. Edit a client and add mappings in the **Remote Path Mappings** section.
+
+| Field | Description |
+|-------|-------------|
+| **Remote Path** | The path as reported by the download client (e.g., `/downloads/`) |
+| **Local Path** | The equivalent path as Narratorr sees it (e.g., `/data/downloads/`) |
+
+When Narratorr receives a path from the download client, it checks if the path starts with any configured remote path. If it matches, the remote prefix is replaced with the local path.
+
+## Examples
+
+### Different Volume Names
+
+```yaml
+services:
+  narratorr:
+    volumes:
+      - /data/downloads:/narratorr-downloads
+  qbittorrent:
+    volumes:
+      - /data/downloads:/qbit-downloads
+```
+
+Mapping: `/qbit-downloads/` → `/narratorr-downloads/`
+
+### Host-Based Download Client
+
+Narratorr runs in Docker, but the download client runs directly on the host:
+
+- Download client saves to: `D:\Downloads\`
+- Narratorr volume mount: `-v D:\Downloads:/downloads`
+
+Mapping: `D:\Downloads\` → `/downloads/`
+
+### Multiple Download Clients
+
+Each client can have its own mappings. A qBittorrent container and a SABnzbd container might report different base paths — configure each one independently.
+
+## Troubleshooting
+
+If imports fail after configuring mappings:
+1. Check the Narratorr logs (set log level to `debug`) — they show the original path and the mapped path
+2. Verify the mapped path is accessible inside the Narratorr container: `docker exec narratorr ls /your/mapped/path`
+3. Ensure trailing slashes are consistent — `/downloads/` and `/downloads` can produce different results
+4. Remember that path mappings are prefix replacements — the remote path must match the **start** of the reported path

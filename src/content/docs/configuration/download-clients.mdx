@@ -1,0 +1,83 @@
+---
+title: Download Clients
+description: Configure torrent and Usenet download clients.
+---
+
+Narratorr sends grabbed releases to your download client, then monitors progress and imports completed downloads into your library.
+
+Go to **Settings > Download Clients** to add, edit, or remove clients.
+
+## qBittorrent
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| **Host** | — | Hostname or IP (e.g., `qbittorrent` for Docker, `192.168.1.50` for remote) |
+| **Port** | `8080` | WebUI port |
+| **Username** | — | WebUI username |
+| **Password** | — | WebUI password |
+| **SSL** | off | Enable for HTTPS connections |
+
+qBittorrent's **WebUI must be enabled** (Options > Web UI > Enable in qBittorrent).
+
+Default credentials for a fresh qBittorrent install are typically `admin` / `adminadmin`. Change these immediately.
+
+qBittorrent supports categories — Narratorr can tag its downloads for easy identification.
+
+## Transmission
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| **Host** | — | Hostname or IP |
+| **Port** | `9091` | RPC port |
+| **Username** | — | Optional — only if RPC authentication is enabled |
+| **Password** | — | Optional — only if RPC authentication is enabled |
+| **SSL** | off | Enable for HTTPS connections |
+
+Transmission uses its RPC interface. Authentication is optional and disabled by default in most Transmission setups.
+
+Transmission does not support categories — downloads go to the default download directory.
+
+## SABnzbd
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| **Host** | — | Hostname or IP |
+| **Port** | `8080` | WebUI port |
+| **API Key** | — | SABnzbd API key |
+| **SSL** | off | Enable for HTTPS connections |
+
+### Finding Your SABnzbd API Key
+
+1. Open SABnzbd's web interface
+2. Go to **Config > General**
+3. Copy the **API Key** (not the NZB key)
+
+SABnzbd supports categories — Narratorr can tag its downloads for easy identification.
+
+## NZBGet
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| **Host** | — | Hostname or IP |
+| **Port** | `6789` | WebUI port |
+| **Username** | — | NZBGet control username |
+| **Password** | — | NZBGet control password |
+| **SSL** | off | Enable for HTTPS connections |
+
+Default NZBGet credentials are `nzbget` / `tegbzn6789`. Change these after first setup.
+
+NZBGet supports categories — Narratorr can tag its downloads for easy identification.
+
+## Docker Networking
+
+When both Narratorr and your download client run in Docker:
+
+- Use the **container name** as the host (e.g., `qbittorrent`, `sabnzbd`), not `localhost`
+- Both containers must be on the same Docker network (they are by default if defined in the same `docker-compose.yml`)
+- `localhost` inside a container refers to that container itself, not the host machine
+
+If your download client runs on the host (not in Docker), use `host.docker.internal` or the host's LAN IP.
+
+## Testing
+
+After adding a download client, click **Test** to verify connectivity. If the test fails, see [Troubleshooting > Download client won't connect](/troubleshooting/#download-client-wont-connect).

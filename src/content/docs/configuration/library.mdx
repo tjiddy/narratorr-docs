@@ -1,0 +1,58 @@
+---
+title: Library & Folders
+description: Configure your audiobook library path and naming conventions.
+---
+
+## Library Path
+
+The library path is the root directory where Narratorr stores your organized audiobooks. Every imported book gets its own folder inside this directory, structured according to your folder format template.
+
+- **Docker default:** `/audiobooks` (mapped to a host directory via volume mount)
+- **Manual install default:** `./audiobooks` (relative to working directory)
+- **Override:** Set the `LIBRARY_PATH` [environment variable](/configuration/environment-variables/)
+
+The directory must exist and be writable by the Narratorr process.
+
+## Folder Format
+
+The folder format template controls how audiobook directories are named inside your library. Configure it in **Settings > Library > Folder Format**.
+
+**Default:** `{author}/{title}`
+
+This creates a structure like:
+
+```
+/audiobooks/
+├── Brandon Sanderson/
+│   ├── The Way of Kings/
+│   └── Words of Radiance/
+├── Terry Pratchett/
+│   └── Guards! Guards!/
+```
+
+You can include series information, publication year, and other metadata using tokens. See [Folder Format Tokens](/guides/folder-format/) for the complete reference.
+
+## File Format
+
+The file format template controls how individual audiobook files are renamed within their folder. Configure it in **Settings > Library > File Format**.
+
+**Default:** `{author} - {title}`
+
+For multi-file audiobooks, track-specific tokens like `{trackNumber}` and `{partName}` help keep files in order.
+
+## Import Behavior
+
+When a download completes, Narratorr:
+
+1. Detects the completed download in your download client
+2. Copies (or moves) the files to your library path using the folder and file format templates
+3. Optionally runs [audio processing](/guides/audio-processing/) (merge, format conversion)
+4. Marks the download as imported
+
+### Related Settings
+
+- **Delete After Import** (Settings > Import) — remove files from the download client after import
+- **Minimum Seed Time** (Settings > Import) — for torrents, wait until the minimum seed time before importing
+- **Processing** (Settings > Processing) — merge multi-file downloads, convert formats
+
+If downloads aren't importing, see [Troubleshooting > Downloads aren't importing](/troubleshooting/#downloads-arent-importing).

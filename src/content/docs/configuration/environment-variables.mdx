@@ -1,0 +1,61 @@
+---
+title: Environment Variables
+description: Complete reference for Narratorr's environment variables.
+---
+
+Environment variables configure server-level behavior. Most users don't need to change these — the Docker image sets sensible defaults.
+
+## Reference
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `3000` | Server port |
+| `NODE_ENV` | `development` | Environment mode. Set to `production` in Docker. |
+| `CORS_ORIGIN` | `http://localhost:5173` | Allowed CORS origin for the frontend. Only needed in development or split-origin deployments. |
+| `CONFIG_PATH` | `./config` | Directory for the database, settings, and other config files. |
+| `LIBRARY_PATH` | `./audiobooks` | Root directory for your audiobook library. |
+| `DATABASE_URL` | `file:./config/narratorr.db` | libSQL database URL. Must include the `file:` prefix. |
+| `AUTH_BYPASS` | `false` | Disable authentication entirely. **Development/recovery only — never use in production.** |
+| `AUDIBLE_REGION` | `us` | Fallback Audible region for metadata lookups when not configured in Settings > General. Values: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. |
+
+## Docker Overrides
+
+The Docker image and `docker-compose.yml` set these automatically:
+
+```
+NODE_ENV=production
+CONFIG_PATH=/config
+LIBRARY_PATH=/audiobooks
+DATABASE_URL=file:/config/narratorr.db
+```
+
+You generally don't need to override these unless you have a custom volume layout.
+
+## Timezone
+
+You can pass `TZ` to the Docker container for timezone-aware log timestamps:
+
+```yaml
+environment:
+  - TZ=America/New_York
+```
+
+The app does not read `TZ` directly — it's handled by the Node.js runtime and OS. This affects how timestamps appear in logs, not application behavior.
+
+## Overriding in Docker Compose
+
+Add variables to the `environment` section:
+
+```yaml
+services:
+  narratorr:
+    image: narratorr/narratorr:latest
+    environment:
+      - PORT=8080
+      - AUDIBLE_REGION=uk
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/config
+      - /data/audiobooks:/audiobooks
+```

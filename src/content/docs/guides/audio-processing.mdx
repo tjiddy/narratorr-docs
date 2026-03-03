@@ -1,0 +1,64 @@
+---
+title: Audio Processing
+description: Merge multi-file downloads and convert audio formats using ffmpeg.
+---
+
+Narratorr can process audiobook files after import — merging multiple files into a single audiobook file and converting between formats. This is powered by ffmpeg.
+
+## Requirements
+
+- **Docker:** ffmpeg is pre-installed in the production image. No setup needed.
+- **Manual install:** Install ffmpeg and configure its path in **Settings > Processing > ffmpeg Path**.
+
+## Settings
+
+Configure audio processing in **Settings > Processing**.
+
+| Setting | Description |
+|---------|-------------|
+| **Enabled** | Master toggle for all audio processing |
+| **ffmpeg Path** | Path to the ffmpeg binary. Auto-detected in Docker. |
+| **Output Format** | Target format: `m4b` (recommended for audiobooks — supports chapters) or `mp3` |
+| **Keep Original Bitrate** | Retain the source file's bitrate instead of re-encoding to the target bitrate |
+| **Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when keep original bitrate is enabled. |
+| **Merge Behavior** | When to merge files (see below) |
+
+## Merge Behavior
+
+| Option | Behavior |
+|--------|----------|
+| **Always** | Merge all audiobook files into a single output file, even single-file downloads |
+| **Multi-file only** | Only merge when the download contains multiple audio files (most common choice) |
+| **Never** | Skip merging entirely — files are imported as-is |
+
+"Multi-file only" is the most common setting. Many audiobook releases come as 20-50 individual chapter files — merging produces a single M4B with chapter markers that's easier to manage.
+
+## How It Works
+
+1. A download completes and Narratorr begins the import process
+2. If processing is enabled, Narratorr checks the merge behavior setting
+3. If merging is needed, ffmpeg combines the audio files in order
+4. The output is encoded to the configured format and bitrate (unless keep original bitrate is on)
+5. The merged file is placed in the library folder
+
+## Bitrate Guidance
+
+| Bitrate | Quality | File Size |
+|---------|---------|-----------|
+| 32 kbps | Low (talk radio) | Smallest |
+| 64 kbps | Acceptable for speech | Small |
+| **128 kbps** | **Good for audiobooks (default)** | **Moderate** |
+| 192 kbps | High quality | Larger |
+| 320+ kbps | Diminishing returns for speech | Large |
+
+For spoken word, 64–128 kbps is the sweet spot. Higher bitrates increase file size without perceptible quality improvement for narration.
+
+When **keep original bitrate** is enabled, the bitrate setting is ignored and the source bitrate is preserved. Use this when your source files are already at your preferred quality and you don't want re-encoding losses.
+
+## Troubleshooting
+
+- **"ffmpeg not found"** — install ffmpeg or verify the path in Settings > Processing
+- **Processing takes a long time** — merging large audiobooks (20+ hours) is CPU-intensive. This is normal.
+- **Output file is much larger/smaller than expected** — check your bitrate setting. A high bitrate on a low-quality source won't improve quality but will increase size.
+- **"Unsupported format"** — the source file uses a codec ffmpeg can't decode. Check ffmpeg's supported formats.
+- **Disk space errors** — processing needs temporary space for the output file. Ensure sufficient free space in the library directory.

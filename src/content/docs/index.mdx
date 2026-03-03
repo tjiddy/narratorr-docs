@@ -1,0 +1,40 @@
+---
+title: Narratorr
+description: Self-hosted audiobook management — search, download, organize.
+template: splash
+hero:
+  tagline: The *arr for audiobooks. Search indexers, grab releases, import into your library — automatically.
+  actions:
+    - text: Get Started
+      link: /getting-started/installation/
+      icon: right-arrow
+      variant: primary
+    - text: Configuration
+      link: /configuration/settings/
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## What Narratorr Does
+
+<CardGrid stagger>
+  <Card title="Search Indexers" icon="magnifier">
+    Search multiple indexers simultaneously — Torznab, Newznab, AudioBookBay, or import from Prowlarr. Torrents and Usenet, your choice.
+  </Card>
+  <Card title="Grab Releases" icon="rocket">
+    Send downloads to qBittorrent, Transmission, SABnzbd, or NZBGet. Narratorr monitors progress and imports when complete.
+  </Card>
+  <Card title="Organize Your Library" icon="open-book">
+    Configurable folder and file naming with token-based templates. Your audiobooks, organized the way you want them.
+  </Card>
+  <Card title="Audio Processing" icon="setting">
+    Optionally merge multi-file downloads into a single M4B or MP3 using ffmpeg. Set bitrate, format, and merge behavior.
+  </Card>
+  <Card title="Notifications" icon="email">
+    Get notified via webhooks, Discord, or custom scripts when downloads grab, complete, import, or fail.
+  </Card>
+  <Card title="Self-Hosted" icon="laptop">
+    Docker or bare metal. Your data stays on your hardware. No accounts, no cloud dependencies, no tracking.
+  </Card>
+</CardGrid>

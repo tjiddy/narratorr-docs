@@ -1,0 +1,115 @@
+---
+title: Notifications
+description: Configure webhooks, Discord, and script notifications for download events.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Narratorr can send notifications when key events occur in the download and import lifecycle. Each notifier subscribes to one or more events and fires independently — notifications never block the main workflow.
+
+Configure notifications in **Settings > Notifications**.
+
+## Events
+
+| Event | Fires When |
+|-------|-----------|
+| **On Grab** | A release is sent to a download client |
+| **On Download Complete** | A download client reports a download finished |
+| **On Import** | An audiobook is successfully imported into the library |
+| **On Failure** | A download or import fails |
+
+## Notifier Types
+
+### Webhook
+
+Sends an HTTP request to any URL when an event fires.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this notifier |
+| **URL** | The endpoint to call |
+| **HTTP Method** | `POST` or `PUT` |
+| **Headers** | Optional custom headers (one per line, `Key: Value` format) |
+
+The request body is JSON containing event details. You can use template variables in the URL and headers:
+
+| Variable | Description |
+|----------|-------------|
+| `{book.title}` | Book title |
+| `{book.author}` | Book author |
+| `{release.title}` | Release name from the indexer |
+| `{release.indexer}` | Indexer that provided the release |
+| `{release.size}` | Release file size |
+| `{download.path}` | Download path |
+| `{download.size}` | Downloaded file size |
+| `{import.libraryPath}` | Library path where the book was imported |
+| `{import.fileCount}` | Number of files imported |
+| `{error.message}` | Error message (failure events only) |
+| `{error.stage}` | Stage where the error occurred (failure events only) |
+
+**Example uses:**
+- Trigger an Audiobookshelf library scan after import
+- Post to Slack or Teams via incoming webhooks
+- Integrate with Home Assistant automations
+- Hit any REST endpoint
+
+:::tip
+For endpoints that require authentication, add an `Authorization` header (e.g., `Bearer your-token-here`).
+:::
+
+### Discord
+
+Sends rich embeds to a Discord channel via webhook URL.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this notifier |
+| **Webhook URL** | Discord webhook URL |
+
+Embeds are color-coded by event:
+- **Blue** — grab
+- **Orange** — download complete
+- **Green** — import
+- **Red** — failure
+
+Cover art thumbnails are included when available.
+
+#### Creating a Discord Webhook
+
+1. Open your Discord server
+2. Go to **Server Settings > Integrations > Webhooks**
+3. Click **New Webhook**
+4. Choose the target channel and copy the webhook URL
+
+### Script
+
+Executes a local shell script or command on the Narratorr host when an event fires.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this notifier |
+| **Command** | Path to the script or command to execute |
+
+The script receives event data two ways:
+- **stdin** — full JSON payload
+- **Environment variables** — `NARRATORR_EVENT`, `NARRATORR_BOOK_TITLE`, `NARRATORR_BOOK_AUTHOR`, etc.
+
+Scripts have a **30-second timeout** — if the script doesn't exit within 30 seconds, it's killed.
+
+:::caution[Docker users]
+The script must exist **inside the container**. Either mount it as a volume:
+```yaml
+volumes:
+  - ./scripts/my-script.sh:/scripts/my-script.sh
+```
+Or bake it into a custom Docker image.
+:::
+
+## Managing Notifiers
+
+- **Enable/disable** — each notifier has a toggle. Disable to temporarily silence without deleting.
+- **Test** — sends a test payload to verify connectivity before you rely on it.
+- **Multiple events** — a single notifier can subscribe to any combination of events.
+- **Multiple notifiers** — multiple notifiers can subscribe to the same event. All fire independently.
+
+If notifications aren't firing, see [Troubleshooting > Notifications not firing](/troubleshooting/#notifications-not-firing).

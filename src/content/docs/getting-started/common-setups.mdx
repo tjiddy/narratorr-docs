@@ -1,0 +1,162 @@
+---
+title: Common Setups
+description: Docker Compose examples for typical Narratorr stacks.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+These are complete `docker-compose.yml` examples for common self-hosted audiobook stacks. Copy one, adjust the paths, and `docker compose up -d`.
+
+## Narratorr + qBittorrent + Audiobookshelf
+
+The most common self-hosted audiobook stack. qBittorrent handles torrents, Narratorr organizes, Audiobookshelf serves your library.
+
+```yaml
+services:
+  narratorr:
+    image: narratorr/narratorr:latest
+    container_name: narratorr
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/narratorr:/config
+      - /data/audiobooks:/audiobooks
+      - /data/downloads:/downloads
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/qbittorrent:/config
+      - /data/downloads:/downloads
+    restart: unless-stopped
+
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    ports:
+      - "13378:80"
+    volumes:
+      - ./config/audiobookshelf:/config
+      - /data/audiobooks:/audiobooks
+    restart: unless-stopped
+```
+
+**Key points:**
+- `/data/downloads` is shared between Narratorr and qBittorrent — Narratorr can see completed downloads
+- `/data/audiobooks` is shared between Narratorr and Audiobookshelf — imported books appear automatically
+- qBittorrent WebUI: `http://localhost:8080` (default credentials: admin / adminadmin)
+- Audiobookshelf: `http://localhost:13378`
+
+:::tip
+Set up a [webhook notification](/configuration/notifications/#webhook) to trigger an Audiobookshelf library scan when Narratorr imports a book.
+:::
+
+## Narratorr + SABnzbd + Audiobookshelf
+
+The Usenet variant. SABnzbd handles NZB downloads instead of torrents.
+
+```yaml
+services:
+  narratorr:
+    image: narratorr/narratorr:latest
+    container_name: narratorr
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/narratorr:/config
+      - /data/audiobooks:/audiobooks
+      - /data/downloads:/downloads
+    restart: unless-stopped
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    environment:
+      - PUID=1000
+      - PGID=1000
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/sabnzbd:/config
+      - /data/downloads:/downloads
+    restart: unless-stopped
+
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    ports:
+      - "13378:80"
+    volumes:
+      - ./config/audiobookshelf:/config
+      - /data/audiobooks:/audiobooks
+    restart: unless-stopped
+```
+
+**Key points:**
+- SABnzbd API key is found in SABnzbd's **Config > General > API Key**
+- SABnzbd WebUI: `http://localhost:8080`
+- When configuring SABnzbd in Narratorr, use `sabnzbd` as the host (Docker service name), not `localhost`
+
+## Narratorr + Transmission + Plex
+
+For Plex users who prefer Transmission's lightweight footprint.
+
+```yaml
+services:
+  narratorr:
+    image: narratorr/narratorr:latest
+    container_name: narratorr
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/narratorr:/config
+      - /data/audiobooks:/audiobooks
+      - /data/downloads:/downloads
+    restart: unless-stopped
+
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    environment:
+      - PUID=1000
+      - PGID=1000
+    ports:
+      - "9091:9091"
+    volumes:
+      - ./config/transmission:/config
+      - /data/downloads:/downloads
+    restart: unless-stopped
+```
+
+**Key points:**
+- Transmission RPC: `http://localhost:9091` (default port 9091)
+- Transmission doesn't support categories — downloads go to the default directory
+- Plex is typically already running separately. Point a Plex audiobook library at `/data/audiobooks` and enable periodic scanning
+- Plex doesn't auto-detect new files like Audiobookshelf — you'll need to trigger a library scan manually or on a schedule
+
+## Narratorr Standalone
+
+Just Narratorr managing your downloads and library folder — no media server. Useful if you listen to audiobooks directly from the filesystem or use a player that reads folders.
+
+```yaml
+services:
+  narratorr:
+    image: narratorr/narratorr:latest
+    container_name: narratorr
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/narratorr:/config
+      - /data/audiobooks:/audiobooks
+      - /data/downloads:/downloads
+    restart: unless-stopped
+```
+
+Pair this with whichever download client you already have running. Configure it in **Settings > Download Clients** using the download client's hostname and port.

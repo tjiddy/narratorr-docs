@@ -1,0 +1,131 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for Narratorr.
+---
+
+## Indexer test fails
+
+**Symptoms:** Clicking "Test" on an indexer shows an error.
+
+**Check:**
+- **Hostname/URL is correct** — typos, missing protocol (`http://`), wrong port
+- **API key is valid** — copy it fresh from your indexer's settings
+- **Site is reachable** — try opening the indexer URL in your browser
+- **Cloudflare is blocking** — AudioBookBay and some indexers use Cloudflare. Try adding a [FlareSolverr](/troubleshooting/#flaresolverr-not-working) URL.
+- **ISP is blocking** — some ISPs block torrent indexer domains. Try a VPN or use a Prowlarr/Jackett instance that routes through one.
+- **Docker networking** — if using Jackett/Prowlarr in Docker, use the container name as the host (e.g., `http://jackett:9117/...`), not `localhost`.
+
+## Download client won't connect
+
+**Symptoms:** "Test" fails when configuring a download client, or Narratorr can't send downloads.
+
+**Check:**
+- **Host and port are correct:**
+  - qBittorrent: default port `8080`
+  - Transmission: default port `9091`
+  - SABnzbd: default port `8080`
+  - NZBGet: default port `6789`
+- **Credentials are correct** — username/password or API key
+- **WebUI/RPC is enabled** — qBittorrent requires WebUI to be enabled in its settings
+- **SSL mismatch** — don't enable SSL in Narratorr if your client isn't configured for HTTPS
+- **Docker networking** — use the container/service name, not `localhost`. See [Docker > Networking](/guides/docker/#networking).
+- **Firewall** — ensure the port is open between the two services
+
+## No results when searching
+
+**Symptoms:** Search returns no results or very few results.
+
+**Check:**
+- **Indexer is working** — test the indexer in Settings first
+- **Try different search terms** — use the author name, book title, or both. Some indexers are picky about exact titles.
+- **Check the indexer directly** — search on the indexer's website to see if it has the content
+- **Multiple indexers** — results come from all configured indexers. More indexers = more results.
+- **Patience** — some indexers are slow to respond. Wait a few seconds before assuming no results.
+
+## Downloads aren't importing
+
+**Symptoms:** Downloads complete in your download client but don't appear in your Narratorr library.
+
+**Check:**
+- **Library path is correct and writable** — verify in Settings > Library
+- **Download path is accessible** — Narratorr must be able to read the completed download. In Docker, the `/downloads` volume must be shared with your download client.
+- **Remote path mappings** — if your download client reports paths that differ from what Narratorr sees, configure [remote path mappings](/guides/remote-path-mappings/)
+- **Minimum seed time** — for torrents, Narratorr waits until the configured minimum seed time before importing (Settings > Import)
+- **Import job timing** — Narratorr checks for completed downloads periodically. Give it a minute after the download finishes.
+- **Check logs** — set log level to `debug` in Settings > General for detailed import information
+
+## Media server doesn't see new books
+
+**Symptoms:** Books are imported to the library folder but your media server doesn't show them.
+
+Narratorr places files into the library folder — it doesn't notify media servers directly. Each server handles detection differently:
+
+- **Audiobookshelf** — auto-detects new files in watched folders. If not, trigger a library scan via the UI or set up a [webhook notification](/configuration/notifications/#webhook) to hit Audiobookshelf's scan API on import.
+- **Plex** — requires a library scan. Set up periodic scanning in Plex, or trigger it via webhook on import.
+- **Other servers** — check if they support filesystem watching or have a scan API you can trigger via webhook.
+
+## FlareSolverr not working
+
+**Symptoms:** Indexers that need FlareSolverr still fail with Cloudflare errors.
+
+**Check:**
+- **URL format** — should be `http://flaresolverr:8191/v1` (including the `/v1` path)
+- **Container networking** — if FlareSolverr is in Docker, use the container name, not `localhost`
+- **FlareSolverr is running** — check `docker logs flaresolverr` for errors
+- **Version compatibility** — very old FlareSolverr versions may not work with current Cloudflare challenges. Update to the latest.
+- **Cloudflare changes** — Cloudflare regularly updates their challenges. FlareSolverr may temporarily be unable to solve new challenge types. Check the FlareSolverr GitHub issues for status.
+
+## Audio processing fails
+
+**Symptoms:** Imports succeed but audio processing (merge/convert) fails.
+
+**Check:**
+- **ffmpeg not found** — verify the path in Settings > Processing. In Docker, ffmpeg is pre-installed at the default path.
+- **Unsupported input format** — the source file uses a codec ffmpeg can't decode. Check ffmpeg docs for supported formats.
+- **Disk space** — processing creates temporary files. Ensure sufficient free space in the library directory.
+- **File permissions** — Narratorr must be able to write to the library directory
+- **Check logs** — ffmpeg errors are logged at `error` level with the specific failure reason
+
+## Notifications not firing
+
+**Symptoms:** Events occur but no notification is received.
+
+**Check:**
+- **Notifier is enabled** — check the toggle in Settings > Notifications
+- **Event is subscribed** — the notifier must be subscribed to the specific event (grab, download complete, import, failure)
+- **Use the Test button** — sends a test payload to verify connectivity
+- **Webhook URL** — verify the URL is correct and reachable from the Narratorr host
+- **Discord webhook** — ensure the webhook hasn't been deleted in Discord server settings
+- **Script notifier** — ensure the script is executable, exists inside the Docker container (mount as volume), and completes within 30 seconds
+
+## Can't log in / locked out
+
+**Symptoms:** Can't access the UI due to authentication issues.
+
+**Recovery steps:**
+
+1. Add `AUTH_BYPASS=true` to your environment variables:
+   ```yaml
+   environment:
+     - AUTH_BYPASS=true
+   ```
+
+2. Restart Narratorr:
+   ```bash
+   docker compose restart narratorr
+   ```
+
+3. Access the UI — authentication is now bypassed
+
+4. Go to **Settings > Security** and fix your auth configuration
+
+5. **Remove `AUTH_BYPASS=true`** from your environment and restart again
+
+:::caution
+Never leave `AUTH_BYPASS=true` in production. It disables all authentication.
+:::
+
+Other things to check:
+- **Clear browser cookies** — stale session cookies can cause login loops
+- **Correct auth mode** — if you switched modes, your browser may be caching the old auth state
+- **Local network bypass** — if enabled, check that your request is coming from a recognized private IP

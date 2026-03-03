@@ -1,0 +1,97 @@
+---
+title: Indexers
+description: Configure audiobook search sources — Prowlarr, Torznab, Newznab, and AudioBookBay.
+---
+
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
+Indexers are the search sources Narratorr queries to find audiobook releases. You can configure multiple indexers — Narratorr searches them all simultaneously and combines the results.
+
+Go to **Settings > Indexers** to add, edit, or remove indexers.
+
+## Prowlarr Import (Recommended)
+
+If you already use [Prowlarr](https://prowlarr.com/) to manage your indexers, you can import them into Narratorr in one step instead of configuring each one manually.
+
+<Steps>
+
+1. In **Settings > Indexers**, click the **Prowlarr Import** button
+2. Enter your Prowlarr URL (e.g., `http://prowlarr:9696`) and API key
+3. Click **Test** to verify the connection
+4. Narratorr shows a preview of what will change:
+   - **New** — indexers in Prowlarr that don't exist in Narratorr yet
+   - **Updated** — indexers that exist in both but have different settings
+   - **Unchanged** — indexers that already match
+   - **Removed** — indexers in Narratorr that no longer exist in Prowlarr
+5. Select the changes you want to apply and click **Import**
+
+</Steps>
+
+:::tip
+Prowlarr import pulls Torznab and Newznab indexers. You can re-run the import anytime to sync changes from Prowlarr.
+:::
+
+## AudioBookBay (ABB)
+
+A website scraper that searches AudioBookBay directly for torrent/magnet links.
+
+| Field | Description |
+|-------|-------------|
+| **Hostname** | AudioBookBay domain (changes frequently due to domain rotation) |
+| **Page Limit** | Maximum number of search result pages to scrape |
+| **FlareSolverr URL** | Optional. Required if Cloudflare blocks direct access. See [Troubleshooting](/troubleshooting/#flaresolverr-not-working). |
+
+:::caution
+AudioBookBay is protected by Cloudflare and breaks frequently. For more reliable access, use AudioBookBay through **Jackett** or **Prowlarr** as a Torznab indexer instead of the direct scraper.
+:::
+
+## Torznab
+
+The standard API for torrent indexers, supported by Jackett, Prowlarr, and many private trackers.
+
+| Field | Description |
+|-------|-------------|
+| **API URL** | The Torznab API endpoint (e.g., `http://jackett:9117/api/v2.0/indexers/mam/results/torznab/`) |
+| **API Key** | Authentication key from your indexer or Jackett/Prowlarr |
+| **FlareSolverr URL** | Optional. Only needed if the indexer requires Cloudflare bypass. |
+
+### Finding Your Torznab URL
+
+<Tabs>
+<TabItem label="Jackett">
+
+1. Open Jackett's UI
+2. Find your indexer and click the **Copy Torznab Feed** button
+3. The URL includes the API key as a query parameter
+
+</TabItem>
+<TabItem label="Prowlarr">
+
+1. Open Prowlarr > Settings > Indexers
+2. Click your indexer
+3. Copy the **Torznab URL** from the indexer details
+4. The API key is in Prowlarr > Settings > General
+
+</TabItem>
+</Tabs>
+
+Torznab is the recommended approach for private trackers like MyAnonamouse (MAM).
+
+## Newznab
+
+The standard API for Usenet indexers (NZBgeek, DogNZB, etc.).
+
+| Field | Description |
+|-------|-------------|
+| **API URL** | The Newznab API endpoint (e.g., `https://api.nzbgeek.info`) |
+| **API Key** | Your indexer's API key, found in your account settings |
+| **FlareSolverr URL** | Optional. Only needed if the indexer requires Cloudflare bypass. |
+
+## Testing Indexers
+
+After adding an indexer, always click **Test** to verify:
+- The URL is reachable
+- The API key is valid
+- Results come back for a sample query
+
+If the test fails, see [Troubleshooting > Indexer test fails](/troubleshooting/#indexer-test-fails).

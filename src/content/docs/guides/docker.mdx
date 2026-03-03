@@ -1,0 +1,131 @@
+---
+title: Docker
+description: Volume mapping, networking, health checks, updates, and backups for Docker deployments.
+---
+
+## Volumes
+
+Narratorr uses three key directories, typically mapped as Docker volumes:
+
+| Container Path | Purpose | Back Up? |
+|---------------|---------|----------|
+| `/config` | Database, settings, configuration files | **Yes** |
+| `/audiobooks` | Your audiobook library | Optional (media can be re-downloaded) |
+| `/downloads` | Shared with download client for import | No |
+
+```yaml
+volumes:
+  - ./config:/config       # Persist between container recreations
+  - /data/audiobooks:/audiobooks
+  - /data/downloads:/downloads
+```
+
+:::caution
+If you don't mount `/config`, your database and settings are lost when the container is removed.
+:::
+
+## Networking
+
+### Connecting to Other Containers
+
+When Narratorr and your download client are in the same `docker-compose.yml`, use the **service name** as the hostname:
+
+```yaml
+services:
+  narratorr:
+    image: narratorr/narratorr:latest
+    # ...
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    # ...
+```
+
+In Narratorr's download client settings, set host to `qbittorrent` (the service name), not `localhost`.
+
+### Connecting to Host Services
+
+If a service runs on the host machine (not in Docker):
+- **Linux:** Use `host.docker.internal` (Docker 20.10+) or the host's LAN IP
+- **Windows/macOS:** Use `host.docker.internal` (built-in)
+
+### Custom Networks
+
+If services are in separate compose files, create a shared network:
+
+```yaml
+# In both docker-compose files:
+networks:
+  shared:
+    external: true
+
+services:
+  narratorr:
+    networks:
+      - shared
+```
+
+Create the network first: `docker network create shared`
+
+## Health Check
+
+Narratorr exposes a health check endpoint:
+
+```
+GET /api/health
+```
+
+Returns `200 OK` when the server is running. Use this for container orchestration, monitoring, or load balancer health probes:
+
+```yaml
+services:
+  narratorr:
+    image: narratorr/narratorr:latest
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+
+## Updating
+
+1. Pull the latest image:
+   ```bash
+   docker compose pull
+   ```
+
+2. Recreate the container:
+   ```bash
+   docker compose up -d
+   ```
+
+Your data persists in the mounted volumes. Database migrations run automatically on startup.
+
+## Backups
+
+Back up the `/config` directory. It contains:
+- `narratorr.db` — your database (books, settings, indexer configs, download history)
+- Any other configuration files
+
+```bash
+# Simple backup
+cp -r ./config ./config-backup-$(date +%Y%m%d)
+
+# Or with a Docker volume
+docker run --rm -v narratorr_config:/config -v $(pwd):/backup alpine \
+  tar czf /backup/narratorr-config-$(date +%Y%m%d).tar.gz /config
+```
+
+:::tip
+Automate backups with a cron job or your preferred backup tool. The SQLite database is safe to copy while Narratorr is running (WAL mode handles concurrent access).
+:::
+
+## Environment Variables
+
+See [Environment Variables](/configuration/environment-variables/) for the complete reference. The Docker image sets production defaults automatically.
+
+## Common Issues
+
+- **Container can't write to volumes** — check file permissions. Narratorr runs as root in the default image.
+- **Can't connect to download client** — use service names, not `localhost`. See [Troubleshooting](/troubleshooting/#download-client-wont-connect).
+- **Downloads complete but don't import** — the `/downloads` volume must be accessible to both containers with matching paths. See [Remote Path Mappings](/guides/remote-path-mappings/).

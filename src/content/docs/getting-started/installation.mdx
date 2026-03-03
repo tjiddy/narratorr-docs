@@ -1,0 +1,114 @@
+---
+title: Installation
+description: Install Narratorr using Docker (recommended) or from source.
+---
+
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
+## Prerequisites
+
+- **Docker** (recommended) or **Node.js 20+** with pnpm
+- A download client: [qBittorrent](/configuration/download-clients/#qbittorrent), [Transmission](/configuration/download-clients/#transmission), [SABnzbd](/configuration/download-clients/#sabnzbd), or [NZBGet](/configuration/download-clients/#nzbget)
+- A folder for your audiobook library
+
+## Docker (Recommended)
+
+<Tabs>
+<TabItem label="Docker Compose">
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  narratorr:
+    image: narratorr/narratorr:latest
+    container_name: narratorr
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/config
+      - /path/to/audiobooks:/audiobooks
+      - /path/to/downloads:/downloads
+    restart: unless-stopped
+```
+
+Then start it:
+
+```bash
+docker compose up -d
+```
+
+</TabItem>
+<TabItem label="Docker CLI">
+
+```bash
+docker run -d \
+  --name narratorr \
+  -p 3000:3000 \
+  -v ./config:/config \
+  -v /path/to/audiobooks:/audiobooks \
+  -v /path/to/downloads:/downloads \
+  --restart unless-stopped \
+  narratorr/narratorr:latest
+```
+
+</TabItem>
+</Tabs>
+
+### Volume Mounts
+
+| Mount | Purpose |
+|-------|---------|
+| `/config` | Database, settings, and configuration files. Back this up. |
+| `/audiobooks` | Your audiobook library. Narratorr imports completed downloads here. |
+| `/downloads` | Shared with your download client so Narratorr can find completed downloads. |
+
+:::tip
+The `/downloads` volume must match or overlap with what your download client sees. If your download client saves to `/downloads/audiobooks` inside its container, Narratorr needs access to the same path — or you'll need [remote path mappings](/guides/remote-path-mappings/).
+:::
+
+### Environment Variables
+
+The Docker image sets sensible defaults. You typically don't need to override anything. See [Environment Variables](/configuration/environment-variables/) for the full reference.
+
+Once the container is running, open **http://localhost:3000** and continue to [First Run Setup](/getting-started/first-run/).
+
+## Manual Install (From Source)
+
+<Steps>
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/todd/narratorr.git
+   cd narratorr
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   pnpm install
+   ```
+
+3. **Build all packages**
+
+   Narratorr is a monorepo — this builds the backend, frontend, and shared packages:
+
+   ```bash
+   pnpm build
+   ```
+
+4. **Start the server**
+
+   ```bash
+   cd apps/narratorr
+   node dist/server/index.js
+   ```
+
+   :::note
+   There is no root-level `start` script. The start command lives in the `apps/narratorr` directory.
+   :::
+
+5. **Open http://localhost:3000** and continue to [First Run Setup](/getting-started/first-run/).
+
+</Steps>

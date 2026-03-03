@@ -1,0 +1,68 @@
+---
+title: First Run Setup
+description: Walk through initial configuration after installing Narratorr.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+After [installing Narratorr](/getting-started/installation/), you'll configure the essentials to start searching and downloading audiobooks.
+
+<Steps>
+
+1. **Set up authentication**
+
+   Navigate to **Settings > Security**. Choose an authentication mode:
+   - **Forms** (recommended) — creates a login page with session-based auth
+   - **Basic** — HTTP Basic Auth prompted by the browser
+   - **None** — no auth (only if Narratorr is on an isolated network)
+
+   Create a username and password. See [Security & Auth](/configuration/security/) for details.
+
+2. **Configure your library path**
+
+   Go to **Settings > Library**. Set the path where Narratorr should store your audiobooks. In Docker, this is `/audiobooks` by default (mapped to a host directory via volumes).
+
+3. **Add an indexer**
+
+   Go to **Settings > Indexers** and add at least one source to search:
+   - **Prowlarr import** — if you already use Prowlarr, sync your indexers in one step
+   - **Torznab** — for torrent indexers via Jackett or Prowlarr
+   - **Newznab** — for Usenet indexers
+   - **AudioBookBay** — direct scraper (may require FlareSolverr)
+
+   Click **Test** to verify the connection. See [Indexers](/configuration/indexers/) for per-type setup.
+
+4. **Add a download client**
+
+   Go to **Settings > Download Clients** and add your client:
+   - [qBittorrent](/configuration/download-clients/#qbittorrent)
+   - [Transmission](/configuration/download-clients/#transmission)
+   - [SABnzbd](/configuration/download-clients/#sabnzbd)
+   - [NZBGet](/configuration/download-clients/#nzbget)
+
+   Click **Test** to verify the connection. See [Download Clients](/configuration/download-clients/) for per-type setup.
+
+5. **Search for your first audiobook**
+
+   Go to the **Search** page. Type an author or title and hit search. Narratorr queries all your configured indexers and shows combined results.
+
+6. **Add a book to your library**
+
+   From the search results, select a book to view its details. Click **Add to Library** to track it.
+
+7. **Grab a release**
+
+   Browse the available releases for your book. Click **Grab** on the one you want — Narratorr sends it to your download client.
+
+8. **Monitor the download**
+
+   Check the **Activity** page to watch download progress. Once the download completes, Narratorr automatically imports it into your library folder using your configured [folder format](/guides/folder-format/).
+
+</Steps>
+
+:::tip
+If downloads complete but don't import, check:
+- Your library path is correct and writable
+- The download path is accessible to Narratorr (see [Remote Path Mappings](/guides/remote-path-mappings/) for Docker setups)
+- The minimum seed time has been met (for torrents)
+:::
