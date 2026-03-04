@@ -102,6 +102,25 @@ Terry Goodkind - Wizards First Rule.m4b
 | Folder Format | `{author}/{title}` |
 | File Format | `{author} - {title}` |
 
+## Behavior Notes
+
+### Empty folder segments are skipped
+
+If a token resolves to nothing (e.g., a book has no series), the entire folder segment is removed from the path — you don't end up with empty directories or double slashes.
+
+For example, with the template `{author}/{series}/{title}` and a book that has no series:
+
+```
+// Expected: the series folder is simply omitted
+Terry Goodkind/Wizards First Rule
+```
+
+This means you don't need any special conditional syntax to handle missing values in folder segments. Just include `{series}` as its own segment and it'll disappear when there's no series. If you want series info combined with the title in the same segment, use the conditional suffix modifier instead: `{series? - }`.
+
+### Character sanitization
+
+Illegal filesystem characters (`< > : " / \ | ? *` and control characters) are stripped from each path segment. Leading/trailing whitespace is trimmed, and consecutive spaces are collapsed to a single space. For example, if a colon is stripped from `Author: Name`, the resulting double space is automatically collapsed to `Author Name`.
+
 ## Validation
 
 Narratorr validates your format template when you save. Invalid tokens are flagged. The preview below the format field shows how a sample book would be named with your current template.
