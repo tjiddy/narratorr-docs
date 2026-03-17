@@ -1,0 +1,37 @@
+---
+title: Recycling Bin
+description: Soft-delete books with the option to restore them later.
+---
+
+When you delete a book from your library, it goes to the recycling bin instead of being permanently removed. This gives you a safety net — you can restore accidentally deleted books with all their metadata and files intact.
+
+## How It Works
+
+1. **Delete a book** — files are moved from your library to the recycle directory (`config/recycle/<bookId>/`), and the book is removed from the library database
+2. **Metadata preserved** — the recycling bin stores a full snapshot: title, author, narrator, description, cover URL, ASIN, ISBN, series info, duration, genres, and monitoring status
+3. **Restore** — moves files back to the original library path and re-creates the book in the database with all its metadata
+4. **Purge** — permanently deletes the files and record. No recovery after this.
+
+## Retention
+
+Recycling bin entries are automatically purged after the configured retention period.
+
+Configure in **Settings > General > Recycle Retention Days**. Range: 0–365 days. Default: 30.
+
+Set to `0` to disable automatic cleanup (entries stay forever until manually purged).
+
+## Managing the Recycling Bin
+
+Access from **System > Recycling Bin**. You can:
+
+| Action | What It Does |
+|--------|-------------|
+| **Restore** | Moves files back and re-creates the book in your library |
+| **Purge** | Permanently deletes a single entry |
+| **Empty All** | Purges everything in the recycling bin |
+
+### Restore Behavior
+
+- If the original library path is occupied by another book, restore will fail with a conflict error — resolve the conflict first
+- If the book's files were already gone from disk when deleted, the recycling record still preserves metadata. Restoring creates the book with status `wanted` (no path) so Narratorr can search for it again.
+- Author relationships are restored by matching author name — if the author was also deleted, a new author record is created

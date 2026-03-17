@@ -1,0 +1,142 @@
+---
+title: Features Reference
+description: Quick reference for all Narratorr features — event history, library scan, health checks, and more.
+---
+
+This page covers features that don't need a full dedicated guide. For the major features, see their dedicated pages in the sidebar.
+
+## Activity Page
+
+The Activity page (`/activity`) is your command center for monitoring what Narratorr is doing. It has two sections:
+
+**Active Downloads** — shows all in-progress downloads with real-time progress bars (via SSE streaming). Each card shows download speed, ETA, and progress percentage. Downloads in `pending_review` status show quality gate data with **Approve** and **Reject** buttons. See [Quality Gates](/guides/quality-gates/) for details.
+
+**Event History** — a chronological log of everything that's happened:
+
+| Event Type | Fires When |
+|-----------|-----------|
+| `grabbed` | A release was sent to a download client |
+| `download_completed` | Download finished successfully |
+| `download_failed` | Download failed |
+| `imported` | Book was imported into the library |
+| `import_failed` | Import failed |
+| `upgraded` | An existing book was replaced with a higher-quality version |
+| `deleted` | A book was deleted (moved to recycling bin) |
+| `renamed` | A book's files were renamed/moved |
+| `file_tagged` | Audio file tags were written |
+| `held_for_review` | Quality gate held a download for manual review |
+
+Events can be filtered by type and searched by book title. Individual events and bulk cleanup are supported.
+
+## Library Scan
+
+Library scan discovers and catalogs audiobooks that are already in your library folder. It's useful when:
+
+- Migrating an existing collection to Narratorr
+- Files were added to the library folder outside of Narratorr
+- You want to re-scan after manually reorganizing files
+
+Trigger a scan from the library page. The scan discovers audio files in subfolders, matches them to metadata, and creates book records.
+
+### Rescan
+
+A rescan re-enriches existing books — updating metadata and file-based quality information (codec, bitrate, duration). Useful after manually replacing files.
+
+## Search Pipeline
+
+When you search for a book (manually, via scheduled search, or RSS), Narratorr:
+
+1. Queries all enabled indexers simultaneously
+2. Filters multi-part Usenet posts
+3. Removes blacklisted releases
+4. Applies [quality gate filters](/guides/quality-gates/#search-time-filters) (reject words, required words, min seeders, grab floor)
+5. Ranks results by quality (MB/hour), with protocol preference as a tiebreaker
+6. Deduplicates by info hash
+
+The scheduled search job runs on a configurable interval (Settings > Search > Interval, default: 360 minutes / 6 hours) and searches for all books with status `wanted`.
+
+## Prowlarr Sync
+
+If you use [Prowlarr](https://prowlarr.com/) to manage your indexers, you can sync them to Narratorr instead of configuring each one manually.
+
+1. Go to **Settings > Indexers > Prowlarr Sync**
+2. Enter your Prowlarr URL and API key
+3. Click **Preview** to see what would be synced (new, updated, removed indexers)
+4. Select the items to sync and click **Apply**
+
+Prowlarr sync is a one-time operation, not continuous. Re-run it when you add or change indexers in Prowlarr.
+
+## Health Checks
+
+Narratorr periodically runs health checks and displays results in the sidebar. Checks include:
+
+| Check | What It Monitors |
+|-------|-----------------|
+| **Indexers** | Tests each enabled indexer's connection |
+| **Download Clients** | Tests each enabled client's connection |
+| **Library Root** | Verifies the library path exists and is writable |
+| **Disk Space** | Warns when free space drops below threshold |
+| **ffmpeg** | Verifies ffmpeg is accessible (if configured) |
+| **Stuck Downloads** | Flags downloads with no progress for over an hour |
+
+Each check reports `healthy`, `warning`, or `error`. State transitions trigger notifications if you have health event notifications configured.
+
+## Real-Time Updates (SSE)
+
+Narratorr uses Server-Sent Events to push updates to the browser without polling. The UI automatically reflects:
+
+| Event | What Updates |
+|-------|-------------|
+| `download_progress` | Progress bar, speed, ETA on active downloads |
+| `download_status_change` | Download card status badge |
+| `book_status_change` | Book status on library/detail pages |
+| `import_complete` | Library refreshes to show new import |
+| `grab_started` | Activity page shows new download |
+| `review_needed` | Toast notification for pending review |
+
+If your browser disconnects, the UI falls back to periodic polling.
+
+## Post-Processing Script
+
+Run a custom script after each successful import. Configure in **Settings > Processing**.
+
+| Setting | Description |
+|---------|-------------|
+| **Post-Processing Script** | Path to the script or command to execute |
+| **Script Timeout** | Maximum execution time in seconds. Default: 300 (5 min). Minimum: 1. |
+
+The script receives the audiobook path as its first argument, plus these environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `NARRATORR_BOOK_TITLE` | Book title |
+| `NARRATORR_BOOK_AUTHOR` | Author name (empty string if unknown) |
+| `NARRATORR_IMPORT_PATH` | Final library path |
+| `NARRATORR_IMPORT_FILE_COUNT` | Number of audio files |
+
+Use this to trigger media server scans, send custom notifications, or run format conversions that Narratorr doesn't handle natively. Script failures don't block the import — they're logged as warnings.
+
+:::caution[Docker users]
+The script must exist inside the container. Mount it as a volume or bake it into a custom image.
+:::
+
+## Author Page
+
+The author detail page shows all books by an author, organized by series. It displays:
+
+- Author name and metadata
+- Series sections with books in order, showing owned vs. missing entries
+- Standalone books (not part of a series)
+- Quality badges and status indicators for each book
+
+Click any book to go to its detail page.
+
+## Version Check
+
+Narratorr periodically checks GitHub for new releases. When a newer version is available, a notification banner appears in the UI with a link to the release page.
+
+You can dismiss the notification for a specific version — it won't reappear until an even newer version is available. Configure in **Settings > System > Dismissed Update Version**.
+
+## Pagination
+
+All list views (library, activity, event history, blacklist) support pagination. Use the controls at the bottom of the list to navigate pages or change the page size.

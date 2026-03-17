@@ -7,7 +7,7 @@ import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 
 ## Prerequisites
 
-- **Docker** (recommended) or **Node.js 20+** with pnpm
+- **Docker** (recommended) or **Node.js 22+** with pnpm
 - A download client: [qBittorrent](/configuration/download-clients/#qbittorrent), [Transmission](/configuration/download-clients/#transmission), [SABnzbd](/configuration/download-clients/#sabnzbd), or [NZBGet](/configuration/download-clients/#nzbget)
 - A folder for your audiobook library
 
@@ -90,9 +90,7 @@ Once the container is running, open **http://localhost:3000** and continue to [F
    pnpm install
    ```
 
-3. **Build all packages**
-
-   Narratorr is a monorepo — this builds the backend, frontend, and shared packages:
+3. **Build**
 
    ```bash
    pnpm build
@@ -101,13 +99,8 @@ Once the container is running, open **http://localhost:3000** and continue to [F
 4. **Start the server**
 
    ```bash
-   cd apps/narratorr
    node dist/server/index.js
    ```
-
-   :::note
-   There is no root-level `start` script. The start command lives in the `apps/narratorr` directory.
-   :::
 
 5. **Open http://localhost:3000** and continue to [First Run Setup](/getting-started/first-run/).
 

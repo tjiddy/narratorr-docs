@@ -10,7 +10,14 @@ Narratorr's settings are organized into sections, accessible from **Settings** i
 | Setting | Description |
 |---------|-------------|
 | **Log Level** | Controls how verbose Narratorr's logs are. Options: `error`, `warn`, `info`, `debug`. Default: `info`. Turn up to `debug` when troubleshooting. |
-| **Audible Region** | Region used for metadata lookups (cover art, descriptions). Options: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. Can also be set via the `AUDIBLE_REGION` [environment variable](/configuration/environment-variables/). |
+| **Event Retention** | How many days to keep event history entries. Range: 1–365. Default: 90. |
+| **Recycle Retention** | Days before recycling bin entries are auto-purged. Range: 0–365. Default: 30. Set to 0 to disable auto-cleanup. See [Recycling Bin](/guides/recycling-bin/). |
+
+## Metadata
+
+| Setting | Description |
+|---------|-------------|
+| **Audible Region** | Region used for metadata lookups (cover art, descriptions). Options: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. Default: `us`. Can also be set via the `AUDIBLE_REGION` [environment variable](/configuration/environment-variables/). |
 
 ## Library
 
@@ -26,6 +33,21 @@ Narratorr's settings are organized into sections, accessible from **Settings** i
 |---------|-------------|
 | **Enabled** | Toggle automatic searching on/off. |
 | **Interval** | How often (in minutes) Narratorr searches for missing books. Range: 5–1440. Default: 360 (6 hours). |
+| **Blacklist TTL** | How many days temporary blacklist entries last. Range: 1–365. Default: 7. See [Blacklist](/guides/blacklist/). |
+
+## Quality
+
+Controls which releases are eligible to grab and how downloads are evaluated. See [Quality Gates](/guides/quality-gates/) for full details.
+
+| Setting | Description |
+|---------|-------------|
+| **Grab Floor** | Minimum quality in MB/hour. Default: 0 (disabled). |
+| **Protocol Preference** | Prefer `usenet`, `torrent`, or `none`. Default: none. |
+| **Min Seeders** | Minimum seeders for torrent releases. Default: 0. |
+| **Reject Words** | Comma-separated words to exclude from results. |
+| **Required Words** | Comma-separated words — at least one must appear. |
+| **Search Immediately** | Immediately search when adding a new book. Default: off. |
+| **Monitor for Upgrades** | Auto-enable upgrade monitoring for new books. Default: off. |
 
 ## Import
 
@@ -46,8 +68,52 @@ Audio processing requires ffmpeg. In Docker, ffmpeg is pre-installed. For manual
 | **Keep Original Bitrate** | When enabled, the target bitrate setting is ignored and the source file's bitrate is retained. |
 | **Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when keep original bitrate is enabled. |
 | **Merge Behavior** | When to merge multi-file downloads: `always`, `multi-file-only`, or `never`. |
+| **Post-Processing Script** | Custom script to run after each import. See [Features Reference](/guides/features/#post-processing-script). |
+| **Script Timeout** | Maximum execution time in seconds. Default: 300. |
 
 See [Audio Processing](/guides/audio-processing/) for more detail.
+
+## Tagging
+
+| Setting | Description |
+|---------|-------------|
+| **Enabled** | Toggle tag writing on/off. |
+| **Mode** | `populate_missing` (only fill empty fields) or `overwrite` (replace all). Default: populate_missing. |
+| **Embed Cover** | Embed cover art into audio files. Default: off. |
+
+See [Tagging & Cover Art](/guides/tagging/) for details.
+
+## RSS
+
+| Setting | Description |
+|---------|-------------|
+| **Enabled** | Toggle RSS sync on/off. Default: off. |
+| **Interval** | Poll frequency in minutes. Range: 5–1440. Default: 30. |
+
+See [RSS Feeds](/guides/rss-feeds/) for details.
+
+## Discovery
+
+| Setting | Description |
+|---------|-------------|
+| **Enabled** | Toggle discovery engine on/off. Default: off. |
+| **Interval** | Refresh frequency in hours. Range: 1–168. Default: 24. |
+| **Max Per Author** | Maximum suggestions per author. Range: 1–50. Default: 5. |
+| **Expiry Days** | Days before unused suggestions expire. Default: 90. |
+| **Snooze Days** | Days a snoozed suggestion stays hidden. Default: 30. |
+| **Weight Multipliers** | Per-category weights (author, series, genre, narrator, diversity). 0–1. Default: 1 for all. |
+
+See [Discovery & Recommendations](/guides/discovery/) for details.
+
+## System
+
+| Setting | Description |
+|---------|-------------|
+| **Backup Interval** | Minutes between automatic backups. Range: 60–43,200. Default: 10,080 (weekly). |
+| **Backup Retention** | Number of backups to keep. Range: 1–100. Default: 7. |
+| **Dismissed Update Version** | Version string to suppress the update notification for. |
+
+See [Backup & Restore](/guides/backup-restore/) for details.
 
 ## See Also
 
@@ -56,3 +122,5 @@ See [Audio Processing](/guides/audio-processing/) for more detail.
 - [Notifications](/configuration/notifications/) — configure event notifications
 - [Security & Auth](/configuration/security/) — configure authentication
 - [Environment Variables](/configuration/environment-variables/) — server-level configuration
+- [Import Lists](/guides/import-lists/) — add books from external sources
+- [Blacklist](/guides/blacklist/) — block specific releases

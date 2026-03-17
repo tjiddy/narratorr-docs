@@ -20,21 +20,27 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 <CardGrid stagger>
   <Card title="Search Indexers" icon="magnifier">
-    Search multiple indexers simultaneously — Torznab, Newznab, AudioBookBay, or import from Prowlarr. Torrents and Usenet, your choice.
+    Search multiple indexers simultaneously — Torznab, Newznab, or import from Prowlarr. Torrents and Usenet, your choice.
   </Card>
   <Card title="Grab Releases" icon="rocket">
-    Send downloads to qBittorrent, Transmission, SABnzbd, or NZBGet. Narratorr monitors progress and imports when complete.
+    Send downloads to qBittorrent, Transmission, SABnzbd, or NZBGet. Quality gates filter and rank results automatically.
+  </Card>
+  <Card title="Discover New Books" icon="star">
+    Recommendation engine suggests new audiobooks based on your library — by author, series, genre, and narrator.
   </Card>
   <Card title="Organize Your Library" icon="open-book">
-    Configurable folder and file naming with token-based templates. Your audiobooks, organized the way you want them.
+    Configurable folder and file naming, ID3 tagging, cover art embedding. Your audiobooks, organized the way you want.
+  </Card>
+  <Card title="Import Lists" icon="list-format">
+    Automatically add books from Audiobookshelf, NYT Bestsellers, or Hardcover. RSS feeds catch new releases in minutes.
   </Card>
   <Card title="Audio Processing" icon="setting">
-    Optionally merge multi-file downloads into a single M4B or MP3 using ffmpeg. Set bitrate, format, and merge behavior.
+    Merge multi-file downloads into a single M4B or MP3 using ffmpeg. Set bitrate, format, and merge behavior.
   </Card>
   <Card title="Notifications" icon="email">
     Get notified via webhooks, Discord, or custom scripts when downloads grab, complete, import, or fail.
   </Card>
   <Card title="Self-Hosted" icon="laptop">
-    Docker or bare metal. Your data stays on your hardware. No accounts, no cloud dependencies, no tracking.
+    Docker or bare metal. Automated backups, recycling bin, health checks. Your data stays on your hardware.
   </Card>
 </CardGrid>

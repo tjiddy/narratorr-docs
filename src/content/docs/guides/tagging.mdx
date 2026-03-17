@@ -1,0 +1,58 @@
+---
+title: Tagging & Cover Art
+description: Write ID3/M4B metadata tags and embed cover art into your audiobook files.
+---
+
+Narratorr can write metadata tags to your audiobook files after import — author, title, narrator, series, and cover art. This ensures your files are properly tagged regardless of how the original release was labeled.
+
+## Enabling Tagging
+
+Configure in **Settings > Tagging**.
+
+| Setting | Description |
+|---------|-------------|
+| **Enabled** | Master toggle for tag writing |
+| **Mode** | How tags are written (see below) |
+| **Embed Cover** | Embed cover art into audio files as an attached picture |
+
+Tagging requires **ffmpeg** — configure its path in **Settings > Processing > ffmpeg Path** (pre-installed in Docker).
+
+## Tag Modes
+
+| Mode | Behavior |
+|------|----------|
+| **Populate Missing** | Only writes tags to fields that are currently empty. Preserves any existing tags. This is the default and safest option. |
+| **Overwrite** | Writes all tags from Narratorr's metadata, replacing whatever was in the file. Use this when you trust Narratorr's metadata more than the source files. |
+
+## What Gets Tagged
+
+| Tag Field | Source |
+|-----------|--------|
+| Artist / Album Artist | Book author |
+| Album | Book title |
+| Title | Book title (single file) or preserved (multi-file) |
+| Composer | Narrator |
+| Grouping | Series name |
+| Track / Track Total | File position (multi-file only) |
+
+## Cover Art Embedding
+
+When **Embed Cover** is enabled, Narratorr looks for a `cover.jpg`, `cover.jpeg`, `cover.png`, or `cover.webp` file in the book's directory and embeds it as the audio file's attached picture.
+
+In **populate missing** mode, cover art is only embedded if the file doesn't already have embedded artwork. In **overwrite** mode, it always embeds.
+
+If no cover image file is found in the directory, a warning is logged but tagging continues for the text metadata.
+
+## Supported Formats
+
+Tag writing works with: **MP3** (`.mp3`), **M4A** (`.m4a`), **M4B** (`.m4b`).
+
+Other audio formats (FLAC, OGG, etc.) in the book directory are skipped with a warning.
+
+## Re-tagging
+
+You can re-tag an existing book's files from the book detail page. This uses the current tagging settings (mode and embed cover) and the book's current metadata in Narratorr.
+
+## How It Fits in the Pipeline
+
+Tagging runs as part of the import pipeline, after audio processing (merge/convert) but before the import is marked complete. If tagging is disabled, files are imported as-is.

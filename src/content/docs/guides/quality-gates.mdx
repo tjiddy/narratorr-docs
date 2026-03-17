@@ -1,0 +1,76 @@
+---
+title: Quality Gates
+description: Control which releases get grabbed and how completed downloads are evaluated before import.
+---
+
+Quality gates work at two stages: **search-time filtering** (which releases are eligible to grab) and **post-download evaluation** (whether a completed download is good enough to import).
+
+## Search-Time Filters
+
+Configure in **Settings > Quality**.
+
+| Setting | Description |
+|---------|-------------|
+| **Grab Floor** | Minimum quality in MB/hour. Releases below this are filtered out of search results and RSS matches. Set to `0` to disable. Default: 0. |
+| **Protocol Preference** | Prefer `usenet`, `torrent`, or `none` (no preference). When set, results from the preferred protocol are ranked higher. Default: none. |
+| **Min Seeders** | Minimum seeders for torrent releases. Releases with fewer seeders are filtered out. Set to `0` to disable. Default: 0. |
+| **Reject Words** | Comma-separated words. Any release title containing these words is excluded. Example: `abridged, sample, demo`. |
+| **Required Words** | Comma-separated words. Release titles must contain at least one of these words to be eligible. Leave empty to allow all. |
+| **Search Immediately** | When adding a new book, immediately search for it instead of waiting for the next scheduled search cycle. Default: off. |
+| **Monitor for Upgrades** | When adding a new book, automatically enable upgrade monitoring. Default: off. |
+
+### How Filtering Works
+
+When you search for a book (manually or via the scheduled search job), results pass through this pipeline:
+
+1. Blacklisted releases are removed (by info hash)
+2. Multi-part Usenet posts are removed
+3. **Reject words** filter removes matching titles
+4. **Required words** filter removes non-matching titles
+5. **Min seeders** filter removes under-seeded torrents
+6. **Grab floor** filter removes low-quality releases
+7. Remaining results are ranked by quality (MB/hour), with protocol preference as a tiebreaker
+
+The same pipeline applies to RSS feed matches.
+
+### Quality Tiers
+
+Search results display a quality badge based on MB/hour:
+
+| Tier | MB/hour | Color |
+|------|---------|-------|
+| Low | < 30 | Red |
+| Fair | 30–79 | Yellow |
+| Good | 80–199 | Green |
+| High | 200–399 | Blue |
+| Lossless | 400+ | Purple |
+
+For spoken word, "Good" (80–199 MB/hr) is the sweet spot. Higher tiers are typically lossless or very high bitrate recordings.
+
+## Post-Download Quality Gate
+
+After a download completes, Narratorr probes the audio files and makes a decision:
+
+| Decision | When | What Happens |
+|----------|------|--------------|
+| **Auto-import** | New download has better MB/hour than existing | Proceeds to import |
+| **Auto-reject** | Quality is same or worse than existing | Files deleted, release blacklisted |
+| **Hold for review** | Narrator mismatch, duration off by >15%, no quality data to compare, or probe failure | Held in `pending_review` status for your decision |
+
+### Hold Reasons
+
+| Reason | Meaning |
+|--------|---------|
+| `narrator_mismatch` | The download's narrator tag doesn't match the book's expected narrator |
+| `duration_delta` | Duration differs from expected by more than 15% — could indicate an abridged version or wrong content |
+| `no_quality_data` | No existing quality data to compare against (first download for this book) |
+| `probe_failed` | Couldn't read the audio files to determine quality |
+
+### Reviewing Held Downloads
+
+On the Activity page, downloads in `pending_review` show **Approve** and **Reject** buttons:
+
+- **Approve** — proceeds with import
+- **Reject** — deletes files and blacklists the release
+
+The quality gate data (MB/hour comparison, narrator info, duration delta) is shown alongside the review buttons to help you decide.

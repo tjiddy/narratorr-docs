@@ -1,0 +1,85 @@
+---
+title: Discovery & Recommendations
+description: Automatic audiobook recommendations based on your library's authors, series, genres, and narrators.
+---
+
+Narratorr's Discover feature analyzes your library and suggests new audiobooks you might enjoy. It looks at the authors, series, genres, and narrators you already own and finds related titles.
+
+## Enabling Discovery
+
+Go to **Settings > Discovery** and toggle it on. Once enabled, Narratorr generates suggestions on a configurable schedule.
+
+| Setting | Description |
+|---------|-------------|
+| **Enabled** | Master toggle for the discovery engine |
+| **Interval** | How often (in hours) to refresh suggestions. Range: 1–168. Default: 24. |
+| **Max Per Author** | Maximum suggestions generated per author. Range: 1–50. Default: 5. Prevents a single prolific author from dominating the feed. |
+| **Expiry Days** | Suggestions expire after this many days if not acted on. Range: 1+. Default: 90. |
+| **Snooze Days** | How long a snoozed suggestion stays hidden. Range: 1+. Default: 30. |
+
+## How Scoring Works
+
+Each suggestion gets a score based on why it was recommended:
+
+| Reason | What It Means |
+|--------|---------------|
+| **Author** | You own other books by the same author |
+| **Series** | Completes a series you've started (see below) |
+| **Genre** | Matches genres in your library |
+| **Narrator** | Narrated by someone you've listened to before |
+| **Diversity** | Introduces variety — prevents a filter bubble by surfacing titles outside your usual patterns |
+
+Each reason has a base weight:
+
+| Reason | Base Weight |
+|--------|------------|
+| Series | 50 |
+| Author | 40 |
+| Genre | 25 |
+| Narrator | 20 |
+| Diversity | 15 |
+
+Scores get bonus points for recency (+10 if published in the last 2 years), duration match (+5 if close to your library's median), and series position (+20 if it's the exact next book you need). Final scores are clamped to 0–100.
+
+### Weight Multipliers
+
+Each reason category has a weight multiplier (0–1) in **Settings > Discovery > Weight Multipliers**. Lower the multiplier to de-emphasize a category, or set it to 0 to exclude it entirely.
+
+Narratorr also auto-tunes weights based on your dismissal patterns. If you consistently dismiss genre-based suggestions (more than 80% dismissed with at least 5 suggestions), that category's multiplier is automatically reduced — down to a minimum of 0.25. This prevents the engine from repeatedly suggesting things you're not interested in.
+
+## Series Completion Intelligence
+
+When you own books 1, 2, and 4 of a series, Narratorr notices the gap and suggests book 3 with a boosted score. It also suggests the next book in a series you're actively following.
+
+Series suggestions are flagged with a `series` reason and include context like "Book 3 of The Expanse — you own 1, 2, 4."
+
+## The Discover Page
+
+The Discover page shows your suggestion feed, sorted by score. Each card shows:
+
+- Cover art, title, and author
+- Why it was suggested (reason badge)
+- The score
+
+### Actions
+
+| Action | What It Does |
+|--------|-------------|
+| **Add** | Adds the book to your library as "wanted" and starts searching |
+| **Dismiss** | Removes the suggestion. Feeds into the dismissal tracking system. |
+| **Snooze** | Hides the suggestion for the configured snooze period, then it reappears |
+
+## Diversity Factor
+
+To prevent filter bubbles — where you only see more of exactly what you already have — the engine includes a diversity signal. A portion of suggestions intentionally come from outside your dominant patterns. This is controlled by the `diversity` weight multiplier.
+
+## Suggestion Lifecycle
+
+1. **Generated** — engine creates suggestion with a score and reason
+2. **Pending** — visible in the Discover feed
+3. **Added** — you chose to add the book to your library
+4. **Dismissed** — you dismissed it (tracked for weight tuning)
+5. **Snoozed** — hidden until the snooze period expires, then returns to pending
+6. **Expired** — automatically removed after the expiry period
+
+Suggestions are refreshed each cycle. If a suggestion already exists (matched by ASIN), its score is updated and the refresh timestamp is reset — it won't expire while the engine still considers it relevant.

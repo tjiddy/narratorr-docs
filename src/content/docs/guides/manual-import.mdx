@@ -1,0 +1,57 @@
+---
+title: Manual Import
+description: Import audiobooks from your filesystem into Narratorr's library.
+---
+
+Manual import lets you bring existing audiobooks into Narratorr's library from a directory on disk — useful for migrating an existing collection or importing files you've obtained outside of Narratorr.
+
+Access from the **Activity** dropdown or directly at `/manual-import`.
+
+## Workflow
+
+### Step 1: Select a Directory
+
+Enter or browse to a directory containing audiobook folders. The directory should have subfolders for each book (e.g., organized as `Author/Title` or similar).
+
+Click the folder icon to open the directory browser, which lets you navigate the filesystem visually.
+
+### Step 2: Scan and Review
+
+Click **Scan** to discover audiobooks. Narratorr:
+
+1. Scans the directory for subfolders containing audio files
+2. Attempts to match each folder to a known book using metadata lookup
+3. Shows a card for each discovered book with match confidence
+
+Each card shows:
+
+| Status | Meaning |
+|--------|---------|
+| **Matched** | Confident metadata match found — ready to import |
+| **Review** | Partial match — you may want to verify or edit the metadata |
+| **No Match** | No metadata match found — edit to provide correct details |
+| **Duplicate** | Book already exists in your library (skipped) |
+
+You can:
+
+- **Select/deselect** individual books or use "select all"
+- **Edit** any book's metadata — title, author, narrator, series info
+- Choose from **alternative matches** if the auto-match wasn't right
+
+### Step 3: Import
+
+Choose an import mode:
+
+| Mode | Behavior |
+|------|----------|
+| **Move** | Moves files to the library folder (default) |
+| **Copy** | Copies files, leaving originals in place |
+
+Click **Import** to process all selected books. Narratorr moves/copies each book's files into the library using your configured [folder format](/guides/folder-format/), creates database records, and runs any enabled post-processing (audio processing, tagging).
+
+## Tips
+
+- Point to a parent folder containing multiple book subfolders — Narratorr discovers each one
+- Books that already exist in your library are flagged as duplicates and auto-skipped
+- Unmatched books can still be imported after manually entering the metadata
+- The directory browser defaults to your configured library path

@@ -1,0 +1,54 @@
+---
+title: Backup & Restore
+description: Automated database backups and manual restore for disaster recovery.
+---
+
+Narratorr automatically backs up its database on a schedule. Backups capture the complete database (books, settings, history, everything) as a compressed zip file.
+
+## Automated Backups
+
+Configure in **Settings > System**.
+
+| Setting | Description |
+|---------|-------------|
+| **Backup Interval** | How often to create a backup, in minutes. Range: 60–43,200 (1 hour to 30 days). Default: 10,080 (weekly). |
+| **Backup Retention** | Number of backups to keep. Older backups are automatically pruned. Range: 1–100. Default: 7. |
+
+Backups are stored in `config/backups/` (in Docker, this is inside the `/config` volume).
+
+## What Gets Backed Up
+
+Each backup is a zip file containing a consistent SQLite snapshot of your database. This includes:
+
+- All books, authors, and series data
+- Settings and configuration
+- Download history and event history
+- Blacklist entries
+- Import list configuration
+- Notification configuration
+- User accounts
+
+Library audio files are **not** included in backups — only the database. Back up your library volume separately.
+
+## Manual Backup
+
+Trigger a backup manually from **System > Backups > Create Backup**. This creates an immediate backup regardless of the schedule.
+
+## Downloading Backups
+
+From **System > Backups**, download any backup file to store off-site. This is recommended — if your config volume is lost, the backups stored inside it are lost too.
+
+## Restoring from Backup
+
+Restore is a two-step process to prevent accidental data loss:
+
+1. **Upload** — select a backup zip file. Narratorr extracts and validates it:
+   - Checks it contains a valid SQLite database
+   - Verifies the migration count is compatible (can't restore a backup from a newer version)
+2. **Confirm** — review the validation results and confirm. The pending restore has a **5-minute window** — if you don't confirm in time, it expires and you need to re-upload.
+
+After confirmation, Narratorr stages the restore file and restarts. On startup, it swaps the backup database in and runs any pending migrations.
+
+:::caution
+Restoring replaces your **entire database**. Everything added since the backup was created will be lost. Download a fresh backup before restoring if you want a safety net.
+:::

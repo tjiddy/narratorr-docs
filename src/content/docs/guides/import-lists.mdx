@@ -1,0 +1,70 @@
+---
+title: Import Lists
+description: Automatically add books to your library from external sources like Audiobookshelf, NYT Bestsellers, and Hardcover.
+---
+
+Import lists automatically sync books from external sources into your Narratorr library as "wanted" books. Once added, Narratorr searches for and downloads them like any other book.
+
+Configure import lists in **Settings > Import Lists**.
+
+## List Types
+
+### Audiobookshelf
+
+Syncs your Audiobookshelf library into Narratorr. Useful for migrating from Audiobookshelf or keeping the two in sync.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this list |
+| **Server URL** | Your Audiobookshelf instance URL (e.g., `http://audiobookshelf:13378`) |
+| **API Key** | Audiobookshelf API key (Settings > Users > your user) |
+| **Library ID** | Which Audiobookshelf library to sync from |
+
+### NYT Bestsellers
+
+Adds books from the New York Times bestseller lists. Good for automatically tracking popular new releases.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this list |
+| **API Key** | NYT Developer API key ([developer.nytimes.com](https://developer.nytimes.com)) |
+| **List** | Which bestseller list to track. Default: `audio-fiction`. |
+
+### Hardcover
+
+Syncs books from Hardcover (hardcover.app) — either trending books or a specific shelf.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this list |
+| **API Key** | Hardcover API key |
+| **List Type** | `trending` (popular books) or `shelf` (a specific shelf) |
+| **Shelf ID** | Required when list type is `shelf` — the Hardcover shelf ID to sync |
+
+## Common Settings
+
+Every import list has these shared settings:
+
+| Setting | Description |
+|---------|-------------|
+| **Enabled** | Toggle the list on/off without deleting it |
+| **Sync Interval** | How often to sync, in minutes. Default: 1440 (daily). |
+
+## How Sync Works
+
+1. On each sync cycle, Narratorr fetches items from the external source
+2. Each item is enriched with metadata (ASIN lookup) if not already known
+3. If the book doesn't already exist in your library, it's added with status `wanted`
+4. Duplicate books (matching ASIN or title+author) are silently skipped
+5. Newly added books appear in your library and are picked up by the next search cycle
+
+## Testing and Preview
+
+- **Test** — verifies the connection and credentials are valid
+- **Preview** — fetches the first 10 items from the list so you can see what would be imported before enabling
+
+## Tips
+
+- Sync errors are stored and visible in the list settings — check here if a list stops syncing
+- Books added by import lists track which list they came from, visible on the book detail page
+- Deleting an import list doesn't remove books it previously added

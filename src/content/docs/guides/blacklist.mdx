@@ -1,0 +1,55 @@
+---
+title: Blacklist
+description: Block specific releases from being downloaded again.
+---
+
+The blacklist prevents Narratorr from re-downloading releases you've already rejected. Releases are identified by their info hash (torrents) or NZB GUID (Usenet).
+
+## How Releases Get Blacklisted
+
+Releases are added to the blacklist automatically when:
+
+- The **quality gate** auto-rejects a download (quality same or worse than existing)
+- You manually **reject** a download from the Activity page review
+
+You can also manually add entries from the blacklist management page.
+
+## Blacklist Types
+
+| Type | Behavior |
+|------|----------|
+| **Permanent** | Stays on the blacklist forever. Only removed manually. |
+| **Temporary** | Expires after a configurable TTL, then the release becomes eligible again. |
+
+### TTL Setting
+
+Configure the temporary blacklist TTL in **Settings > Search > Blacklist TTL Days**. Range: 1–365 days. Default: 7 days.
+
+Temporary blacklisting is useful when a release had a transient issue (bad quality at the time, incomplete upload) but might improve later.
+
+## Blacklist Reasons
+
+Each entry records why it was blacklisted:
+
+| Reason | Meaning |
+|--------|---------|
+| `bad_quality` | Quality gate rejection — quality too low |
+| `wrong_content` | Not the expected audiobook |
+| `wrong_narrator` | Different narrator than expected |
+| `spam` | Fake or spam release |
+| `download_failed` | Download itself failed |
+| `infrastructure_error` | Download client or network error |
+| `other` | Manual blacklist or unspecified |
+
+## Managing the Blacklist
+
+The blacklist is accessible from **System > Blacklist** (or the Activity page). You can:
+
+- **View** all blacklisted releases with their reason, type, and expiry date
+- **Toggle** an entry between temporary and permanent
+- **Delete** an entry to allow the release to be downloaded again
+- Expired temporary entries are automatically cleaned up
+
+## How It Affects Search
+
+During search (manual, scheduled, and RSS), Narratorr checks all result info hashes against the active blacklist. Blacklisted releases are filtered out before ranking. Temporary entries that have passed their expiry date are not considered active.

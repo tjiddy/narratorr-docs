@@ -1,0 +1,44 @@
+---
+title: RSS Feeds
+description: Automatically grab new releases as they appear on your indexers.
+---
+
+RSS sync polls your indexers' RSS feeds for new releases and automatically grabs matches for books in your library. This catches new uploads faster than the scheduled search — often within minutes of a release appearing.
+
+## Enabling RSS
+
+Configure in **Settings > RSS**.
+
+| Setting | Description |
+|---------|-------------|
+| **Enabled** | Master toggle for RSS sync |
+| **Interval** | How often to poll RSS feeds, in minutes. Range: 5–1440. Default: 30. |
+
+## How It Works
+
+1. Narratorr polls the RSS feed of each RSS-capable indexer
+2. Each new feed item is matched against your **wanted** books and books with **monitor for upgrades** enabled
+3. Matching is fuzzy — title and author are compared with a similarity threshold (70%)
+4. Matched results pass through the same [quality gate filters](/guides/quality-gates/#search-time-filters) as regular search (grab floor, min seeders, reject/required words, blacklist)
+5. For upgrade candidates, the new release must be strictly better quality (higher MB/hour)
+6. The best-ranked result is grabbed automatically
+
+## What Makes an Indexer RSS-Capable
+
+Not all indexers support RSS. Torznab and Newznab indexers typically do — they expose an RSS feed endpoint that returns recent uploads. The indexer needs to be configured and enabled in **Settings > Indexers**.
+
+## RSS vs Scheduled Search
+
+| | RSS Sync | Scheduled Search |
+|---|---------|-----------------|
+| **Speed** | Polls every 5–30 minutes | Runs every few hours |
+| **Scope** | Only new uploads since last poll | Searches full index |
+| **Best for** | Catching new releases quickly | Finding existing content |
+
+Both systems work together. RSS catches new releases fast; scheduled search finds content that was already available when you added the book.
+
+## Troubleshooting
+
+- **RSS not grabbing anything** — check that RSS is enabled, at least one indexer supports RSS, and you have wanted books in your library
+- **Getting wrong books** — the 70% match threshold catches most cases, but unusual titles can cause false matches. Check the Activity page for unexpected grabs.
+- **Missed releases** — if your poll interval is longer than your indexer's feed retention, releases can scroll off before being seen. Lower the interval.

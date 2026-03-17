@@ -39,6 +39,21 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Features',
+          items: [
+            { label: 'Discovery & Recommendations', slug: 'guides/discovery' },
+            { label: 'Quality Gates', slug: 'guides/quality-gates' },
+            { label: 'Import Lists', slug: 'guides/import-lists' },
+            { label: 'RSS Feeds', slug: 'guides/rss-feeds' },
+            { label: 'Manual Import', slug: 'guides/manual-import' },
+            { label: 'Blacklist', slug: 'guides/blacklist' },
+            { label: 'Recycling Bin', slug: 'guides/recycling-bin' },
+            { label: 'Tagging & Cover Art', slug: 'guides/tagging' },
+            { label: 'Backup & Restore', slug: 'guides/backup-restore' },
+            { label: 'Features Reference', slug: 'guides/features' },
+          ],
+        },
+        {
           label: 'Guides',
           items: [
             { label: 'Folder Format Tokens', slug: 'guides/folder-format' },
