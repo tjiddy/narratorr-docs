@@ -1,29 +1,19 @@
-/* Narratorr amber/dark theme for Starlight */
+/* ============================================
+   Narratorr Docs — Warm Analog Audio Aesthetic
+   Mirrors the app's glassmorphism + amber glow
+   ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* Match the app's brand font for the site title */
-.site-title {
-  font-family: 'Playfair Display', Georgia, serif !important;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  color: #ffffff !important;
-}
-
-/* Match the app's rounded amber background on the logo */
-.site-title img {
-  background: linear-gradient(to bottom right, #f59e0b, #d97706);
-  border-radius: 0.75rem;
-  padding: 0.625rem;
-}
-
-/* Tighten gap between logo and title */
-.site-title {
-  gap: 0.5rem !important;
-}
+/* ============================================
+   Theme Tokens
+   ============================================ */
 
 :root {
   --sl-font: 'DM Sans', system-ui, sans-serif;
+  --sl-font-system-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Warm stone palette — hue-locked around 30° like the app */
   --sl-color-accent-low: #451a03;
   --sl-color-accent: #d97706;
   --sl-color-accent-high: #fbbf24;
@@ -35,6 +25,26 @@
   --sl-color-gray-5: #292524;
   --sl-color-gray-6: #1c1917;
   --sl-color-black: #0c0a09;
+
+  /* Narratorr design tokens */
+  --nr-amber-50: #fffbeb;
+  --nr-amber-100: #fef3c7;
+  --nr-amber-200: #fde68a;
+  --nr-amber-400: #fbbf24;
+  --nr-amber-500: #f59e0b;
+  --nr-amber-600: #d97706;
+  --nr-amber-700: #b45309;
+  --nr-amber-900: #78350f;
+  --nr-amber-950: #451a03;
+
+  /* Glass + glow effects — matching the app */
+  --nr-glass-bg: rgba(28, 25, 23, 0.8);
+  --nr-glass-border: rgba(255, 255, 255, 0.06);
+  --nr-glow: 0 0 20px -5px rgba(217, 119, 6, 0.35);
+  --nr-glow-lg: 0 0 40px -10px rgba(217, 119, 6, 0.4);
+  --nr-glow-subtle: 0 0 30px rgba(251, 191, 36, 0.06);
+  --nr-ambient: rgba(251, 191, 36, 0.08);
+  --nr-ambient-strong: rgba(251, 191, 36, 0.14);
 }
 
 [data-theme='light'] {
@@ -49,4 +59,471 @@
   --sl-color-gray-5: #e7e5e4;
   --sl-color-gray-6: #fafaf9;
   --sl-color-black: #fafaf9;
+
+  --nr-glass-bg: rgba(250, 250, 249, 0.85);
+  --nr-glass-border: rgba(0, 0, 0, 0.06);
+  --nr-glow: 0 0 20px -5px rgba(180, 83, 9, 0.2);
+  --nr-glow-lg: 0 0 40px -10px rgba(180, 83, 9, 0.25);
+  --nr-glow-subtle: 0 0 30px rgba(180, 83, 9, 0.04);
+  --nr-ambient: rgba(180, 83, 9, 0.05);
+  --nr-ambient-strong: rgba(180, 83, 9, 0.08);
+}
+
+/* ============================================
+   Nav / Site Title
+   ============================================ */
+
+.site-title {
+  font-family: 'Playfair Display', Georgia, serif !important;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: #ffffff !important;
+  gap: 0.5rem !important;
+}
+
+.site-title img {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-radius: 0.75rem;
+  padding: 0.625rem;
+}
+
+/* ============================================
+   Splash Page — Ambient background glow
+   ============================================ */
+
+[data-has-hero] .main-pane {
+  position: relative;
+}
+
+/* Radial amber glow behind hero — matches app's gradient-bg */
+[data-has-hero] .main-pane::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 600px;
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 0%,
+    rgba(217, 119, 6, 0.12) 0%,
+    rgba(217, 119, 6, 0.04) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme='light'] [data-has-hero] .main-pane::before {
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 0%,
+    rgba(251, 191, 36, 0.1) 0%,
+    rgba(251, 191, 36, 0.03) 40%,
+    transparent 70%
+  );
+}
+
+/* Noise texture overlay — matches app's noise-overlay */
+[data-has-hero] .main-pane::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.02;
+  pointer-events: none;
+  z-index: 999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px;
+}
+
+/* ============================================
+   Hero — Big presence
+   ============================================ */
+
+[data-has-hero] .hero {
+  padding-block: 3.5rem 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+[data-has-hero] .hero h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(2.75rem, 6vw + 1rem, 4.75rem);
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  color: var(--sl-color-white);
+}
+
+/* Gradient text for the emphasis span */
+.nr-gradient-text {
+  background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 30%, #d97706 65%, #b45309 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme='light'] .nr-gradient-text {
+  background: linear-gradient(135deg, #78350f 0%, #92400e 30%, #b45309 65%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-has-hero] .hero .tagline {
+  font-size: clamp(1.05rem, 1.5vw + 0.5rem, 1.3rem);
+  max-width: 42ch;
+  line-height: 1.6;
+  color: var(--sl-color-gray-2);
+}
+
+/* Hero buttons */
+[data-has-hero] .hero .actions {
+  gap: 1rem;
+  padding-top: 0.75rem;
+}
+
+[data-has-hero] .hero .primary {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  border-color: transparent !important;
+  color: #0c0a09 !important;
+  font-weight: 600;
+  padding: 0.75rem 1.75rem;
+  font-size: 1rem;
+  transition: all 0.25s ease;
+  box-shadow: var(--nr-glow);
+}
+
+[data-has-hero] .hero .primary:hover {
+  box-shadow: var(--nr-glow-lg);
+  transform: translateY(-1px);
+}
+
+[data-has-hero] .hero .secondary {
+  border-color: var(--sl-color-gray-4) !important;
+  color: var(--sl-color-gray-2) !important;
+  transition: all 0.25s ease;
+}
+
+[data-has-hero] .hero .secondary:hover {
+  border-color: var(--nr-amber-600) !important;
+  color: var(--nr-amber-400) !important;
+}
+
+/* ============================================
+   Waveform — Animated audio visualization
+   ============================================ */
+
+.nr-waveform-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(3px, 0.5vw, 6px);
+  height: 44px;
+  margin: 0 auto 2.5rem;
+  max-width: 320px;
+  opacity: 0.3;
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme='light'] .nr-waveform-hero {
+  opacity: 0.22;
+}
+
+.nr-waveform-bar {
+  width: clamp(3px, 0.7vw, 7px);
+  border-radius: 99px;
+  background: linear-gradient(to top, var(--nr-amber-700), var(--nr-amber-500));
+  animation: nr-wave 2s ease-in-out infinite alternate;
+  transform-origin: bottom;
+}
+
+[data-theme='light'] .nr-waveform-bar {
+  background: linear-gradient(to top, var(--nr-amber-900), var(--nr-amber-700));
+}
+
+.nr-waveform-bar:nth-child(1)  { height: 18%; animation-delay: 0.0s; }
+.nr-waveform-bar:nth-child(2)  { height: 35%; animation-delay: 0.08s; }
+.nr-waveform-bar:nth-child(3)  { height: 55%; animation-delay: 0.14s; }
+.nr-waveform-bar:nth-child(4)  { height: 78%; animation-delay: 0.2s; }
+.nr-waveform-bar:nth-child(5)  { height: 95%; animation-delay: 0.26s; }
+.nr-waveform-bar:nth-child(6)  { height: 100%; animation-delay: 0.32s; }
+.nr-waveform-bar:nth-child(7)  { height: 88%; animation-delay: 0.38s; }
+.nr-waveform-bar:nth-child(8)  { height: 65%; animation-delay: 0.42s; }
+.nr-waveform-bar:nth-child(9)  { height: 80%; animation-delay: 0.46s; }
+.nr-waveform-bar:nth-child(10) { height: 95%; animation-delay: 0.52s; }
+.nr-waveform-bar:nth-child(11) { height: 70%; animation-delay: 0.56s; }
+.nr-waveform-bar:nth-child(12) { height: 100%; animation-delay: 0.62s; }
+.nr-waveform-bar:nth-child(13) { height: 85%; animation-delay: 0.68s; }
+.nr-waveform-bar:nth-child(14) { height: 60%; animation-delay: 0.72s; }
+.nr-waveform-bar:nth-child(15) { height: 90%; animation-delay: 0.76s; }
+.nr-waveform-bar:nth-child(16) { height: 100%; animation-delay: 0.82s; }
+.nr-waveform-bar:nth-child(17) { height: 75%; animation-delay: 0.86s; }
+.nr-waveform-bar:nth-child(18) { height: 55%; animation-delay: 0.9s; }
+.nr-waveform-bar:nth-child(19) { height: 85%; animation-delay: 0.96s; }
+.nr-waveform-bar:nth-child(20) { height: 95%; animation-delay: 1.02s; }
+.nr-waveform-bar:nth-child(21) { height: 70%; animation-delay: 1.06s; }
+.nr-waveform-bar:nth-child(22) { height: 50%; animation-delay: 1.1s; }
+.nr-waveform-bar:nth-child(23) { height: 30%; animation-delay: 1.14s; }
+.nr-waveform-bar:nth-child(24) { height: 15%; animation-delay: 1.18s; }
+
+@keyframes nr-wave {
+  0% { transform: scaleY(1); }
+  100% { transform: scaleY(0.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nr-waveform-bar { animation: none; }
+}
+
+/* ============================================
+   Pipeline — Glass card with connector lines
+   ============================================ */
+
+.nr-pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 0 auto 4rem;
+  padding: 1.75rem 2.5rem;
+  max-width: 640px;
+  position: relative;
+  z-index: 1;
+
+  /* Glass card — matches app's glass-card pattern */
+  background: var(--nr-glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--nr-glass-border);
+  border-radius: 1rem;
+  box-shadow: var(--nr-glow-subtle), 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+.nr-pipeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.nr-pipeline-icon {
+  width: clamp(2.5rem, 4vw, 3.25rem);
+  height: clamp(2.5rem, 4vw, 3.25rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  border: 1px solid var(--sl-color-gray-4);
+  background: var(--sl-color-black);
+  color: var(--sl-color-gray-3);
+  transition: all 0.3s ease;
+}
+
+.nr-pipeline-icon svg {
+  width: 48%;
+  height: 48%;
+}
+
+.nr-pipeline-step:hover .nr-pipeline-icon {
+  border-color: var(--nr-amber-600);
+  color: var(--nr-amber-400);
+  box-shadow: var(--nr-glow);
+}
+
+/* The final step (headphones) gets the amber treatment by default */
+.nr-pipeline-icon--final {
+  border-color: var(--nr-amber-700) !important;
+  color: var(--nr-amber-400) !important;
+  background: var(--nr-amber-950) !important;
+  box-shadow: var(--nr-glow);
+}
+
+[data-theme='light'] .nr-pipeline-icon--final {
+  background: var(--nr-amber-100) !important;
+  border-color: var(--nr-amber-600) !important;
+  color: var(--nr-amber-700) !important;
+}
+
+.nr-pipeline-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--sl-color-gray-3);
+}
+
+/* Connector line between steps */
+.nr-pipeline-connector {
+  flex: 0 0 auto;
+  width: clamp(1.5rem, 3vw, 3rem);
+  height: 1px;
+  background: linear-gradient(90deg, var(--sl-color-gray-4), var(--sl-color-gray-5));
+  margin-bottom: 1.6rem; /* align with icon center */
+  position: relative;
+}
+
+.nr-pipeline-connector::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 3px solid transparent;
+  border-left-color: var(--sl-color-gray-4);
+}
+
+/* ============================================
+   Section Labels
+   ============================================ */
+
+.nr-section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--nr-amber-600);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme='light'] .nr-section-label {
+  color: var(--nr-amber-700);
+}
+
+/* ============================================
+   Feature Cards — Glass numbered grid
+   ============================================ */
+
+.nr-features {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  margin-bottom: 4rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+
+  /* Grid lines via background showing through 1px gaps */
+  background: var(--nr-glass-border);
+  border: 1px solid var(--nr-glass-border);
+}
+
+@media (min-width: 50rem) {
+  .nr-features { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+@media (min-width: 30rem) and (max-width: 49.99rem) {
+  .nr-features { grid-template-columns: 1fr 1fr; }
+}
+
+.nr-feature-card {
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  background: var(--sl-color-black);
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+.nr-feature-card:hover {
+  background: var(--nr-ambient-strong);
+}
+
+.nr-feature-number {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--sl-color-gray-5);
+  margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
+}
+
+[data-theme='light'] .nr-feature-number {
+  color: var(--sl-color-gray-5);
+}
+
+.nr-feature-card:hover .nr-feature-number {
+  color: var(--nr-amber-600);
+}
+
+[data-theme='light'] .nr-feature-card:hover .nr-feature-number {
+  color: var(--nr-amber-700);
+}
+
+.nr-feature-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--sl-color-white);
+  margin: 0 0 0.4rem;
+  line-height: 1.3;
+}
+
+.nr-feature-card p {
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--sl-color-gray-2);
+  margin: 0;
+}
+
+/* ============================================
+   Quick Links — Glass LinkCards
+   ============================================ */
+
+[data-has-hero] .sl-link-card {
+  border-color: var(--nr-glass-border);
+  background: var(--nr-glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s ease;
+}
+
+[data-has-hero] .sl-link-card:hover {
+  border-color: rgba(217, 119, 6, 0.3);
+  box-shadow: var(--nr-glow-subtle);
+}
+
+/* ============================================
+   Hide the default heading from MDX content
+   ============================================ */
+
+[data-has-hero] .sl-markdown-content > .sl-heading-wrapper:first-child {
+  display: none;
+}
+
+/* ============================================
+   Global card hover refinement
+   ============================================ */
+
+.card {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  border-color: var(--sl-card-border);
+}
+
+/* ============================================
+   Responsive tweaks
+   ============================================ */
+
+@media (max-width: 30rem) {
+  .nr-pipeline {
+    padding: 1.25rem 1rem;
+  }
+
+  .nr-pipeline-connector {
+    width: 0.75rem;
+  }
+
+  .nr-pipeline-label {
+    font-size: 0.55rem;
+  }
 }

@@ -3,44 +3,118 @@ title: Narratorr
 description: Self-hosted audiobook management — search, download, organize.
 template: splash
 hero:
-  tagline: The *arr for audiobooks. Search indexers, grab releases, import into your library — automatically.
+  title: |
+    Your audiobooks,<br/><span class="nr-gradient-text">your rules.</span>
+  tagline: The *arr for audiobooks. Search indexers, grab releases, and import into your library — automatically.
   actions:
     - text: Get Started
       link: /getting-started/installation/
       icon: right-arrow
       variant: primary
-    - text: Configuration
-      link: /configuration/settings/
-      variant: minimal
+    - text: View on GitHub
+      link: https://github.com/todd/narratorr
+      variant: secondary
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-## What Narratorr Does
+<div class="nr-waveform-hero" aria-hidden="true">
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+  <div class="nr-waveform-bar"></div>
+</div>
 
-<CardGrid stagger>
-  <Card title="Search Indexers" icon="magnifier">
-    Search multiple indexers simultaneously — Torznab, Newznab, or import from Prowlarr. Torrents and Usenet, your choice.
-  </Card>
-  <Card title="Grab Releases" icon="rocket">
-    Send downloads to qBittorrent, Transmission, SABnzbd, or NZBGet. Quality gates filter and rank results automatically.
-  </Card>
-  <Card title="Discover New Books" icon="star">
-    Recommendation engine suggests new audiobooks based on your library — by author, series, genre, and narrator.
-  </Card>
-  <Card title="Organize Your Library" icon="open-book">
-    Configurable folder and file naming, ID3 tagging, cover art embedding. Your audiobooks, organized the way you want.
-  </Card>
-  <Card title="Import Lists" icon="list-format">
-    Automatically add books from Audiobookshelf, NYT Bestsellers, or Hardcover. RSS feeds catch new releases in minutes.
-  </Card>
-  <Card title="Audio Processing" icon="setting">
-    Merge multi-file downloads into a single M4B or MP3 using ffmpeg. Set bitrate, format, and merge behavior.
-  </Card>
-  <Card title="Notifications" icon="email">
-    Get notified via webhooks, Discord, or custom scripts when downloads grab, complete, import, or fail.
-  </Card>
-  <Card title="Self-Hosted" icon="laptop">
-    Docker or bare metal. Automated backups, recycling bin, health checks. Your data stays on your hardware.
-  </Card>
+<div class="nr-pipeline">
+  <div class="nr-pipeline-step">
+    <div class="nr-pipeline-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+    <span class="nr-pipeline-label">Search</span>
+  </div>
+  <div class="nr-pipeline-connector" aria-hidden="true"></div>
+  <div class="nr-pipeline-step">
+    <div class="nr-pipeline-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m4-5 5 5 5-5m-5 5V3"/></svg>
+    </div>
+    <span class="nr-pipeline-label">Grab</span>
+  </div>
+  <div class="nr-pipeline-connector" aria-hidden="true"></div>
+  <div class="nr-pipeline-step">
+    <div class="nr-pipeline-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><rect x="4" y="17" width="16" height="4" rx="1"/></svg>
+    </div>
+    <span class="nr-pipeline-label">Process</span>
+  </div>
+  <div class="nr-pipeline-connector" aria-hidden="true"></div>
+  <div class="nr-pipeline-step">
+    <div class="nr-pipeline-icon nr-pipeline-icon--final">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+    </div>
+    <span class="nr-pipeline-label">Listen</span>
+  </div>
+</div>
+
+<div class="nr-section-label">Core Features</div>
+
+<div class="nr-features">
+  <div class="nr-feature-card">
+    <div class="nr-feature-number">01</div>
+    <h3>Search Indexers</h3>
+    <p>Query Torznab, Newznab, and Prowlarr simultaneously. Torrents and Usenet — both protocols, one search.</p>
+  </div>
+  <div class="nr-feature-card">
+    <div class="nr-feature-number">02</div>
+    <h3>Quality Gates</h3>
+    <p>Set grab floors, reject words, seeder minimums. Every release is scored and ranked before it touches your library.</p>
+  </div>
+  <div class="nr-feature-card">
+    <div class="nr-feature-number">03</div>
+    <h3>Discovery Engine</h3>
+    <p>Recommendations powered by your library — matching authors, series gaps, narrators, and genres. With filter-bubble prevention built in.</p>
+  </div>
+  <div class="nr-feature-card">
+    <div class="nr-feature-number">04</div>
+    <h3>Import Lists</h3>
+    <p>Sync from Audiobookshelf, NYT Bestsellers, or Hardcover. RSS feeds catch new releases within minutes of upload.</p>
+  </div>
+  <div class="nr-feature-card">
+    <div class="nr-feature-number">05</div>
+    <h3>Audio Processing</h3>
+    <p>Merge multi-file downloads into a single M4B. Transcode, set bitrate, embed ID3 tags and cover art — all automatic.</p>
+  </div>
+  <div class="nr-feature-card">
+    <div class="nr-feature-number">06</div>
+    <h3>Self-Hosted</h3>
+    <p>Docker or bare metal. Automated backups, recycling bin, health checks, real-time updates. Your data, your hardware.</p>
+  </div>
+</div>
+
+<div class="nr-section-label">Quick Links</div>
+
+<CardGrid>
+  <LinkCard title="Installation" description="Docker compose or manual — up and running in 2 minutes." href="/getting-started/installation/" />
+  <LinkCard title="First Run Setup" description="Configure indexers, download clients, and your library." href="/getting-started/first-run/" />
+  <LinkCard title="Discovery & Recommendations" description="How the scoring engine finds your next listen." href="/guides/discovery/" />
+  <LinkCard title="Quality Gates" description="Fine-tune which releases make it into your library." href="/guides/quality-gates/" />
 </CardGrid>
