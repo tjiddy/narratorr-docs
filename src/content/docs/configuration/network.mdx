@@ -1,0 +1,71 @@
+---
+title: Network & Proxy
+description: Configure HTTP/HTTPS/SOCKS5 proxy for outbound requests.
+---
+
+Narratorr can route outbound requests through a proxy. This is useful for privacy, accessing region-restricted metadata, or routing traffic through a VPN.
+
+Configure the global proxy in **Settings > Network**.
+
+## Proxy URL
+
+| Setting | Description |
+|---------|-------------|
+| **Proxy URL** | Full proxy URL including protocol. Supports `http://`, `https://`, and `socks5://`. |
+
+Examples:
+- `http://proxy.local:8080`
+- `socks5://user:pass@proxy.local:1080`
+- `http://user:pass@proxy.local:3128`
+
+Click **Test Proxy** to verify connectivity. Narratorr will resolve the proxy's external IP and display it.
+
+:::tip
+Credentials in the proxy URL are encrypted at rest in the database and redacted from log output.
+:::
+
+## What Gets Proxied
+
+The global proxy applies to:
+- Indexer search and test requests
+- Metadata provider lookups
+- Any outbound HTTP request from the server
+
+It does **not** apply to:
+- Download client communication (these are typically on your local network)
+- SSE connections to the browser
+
+## Per-Indexer Proxy Override
+
+Individual indexers can override the global proxy. When configuring an indexer in **Settings > Indexers**, the **FlareSolverr URL** field routes that indexer's requests through a [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) instance instead of the global proxy.
+
+FlareSolverr is a separate service you run alongside Narratorr. It handles Cloudflare-protected sites by running a headless browser to solve challenges.
+
+:::note
+FlareSolverr is a per-indexer setting, not a global one. Only configure it on indexers that require Cloudflare bypass. Standard Torznab/Newznab indexers don't need it.
+:::
+
+## Docker Networking
+
+If Narratorr and your proxy run in Docker, use the container name as the proxy host:
+
+```yaml
+services:
+  narratorr:
+    environment:
+      # No env var for proxy — configure in Settings > Network
+    networks:
+      - media
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    ports:
+      - "8191:8191"
+    networks:
+      - media
+
+networks:
+  media:
+```
+
+Then in **Settings > Indexers**, set FlareSolverr URL to `http://flaresolverr:8191`.

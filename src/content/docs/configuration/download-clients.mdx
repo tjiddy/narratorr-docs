@@ -68,6 +68,33 @@ Default NZBGet credentials are `nzbget` / `tegbzn6789`. Change these after first
 
 NZBGet supports categories — Narratorr can tag its downloads for easy identification.
 
+## Deluge
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| **Host** | — | Hostname or IP |
+| **Port** | `8112` | WebUI/daemon port |
+| **Password** | — | Deluge web password |
+| **SSL** | off | Enable for HTTPS connections |
+
+Default Deluge web password is `deluge`. Change it after first setup.
+
+Deluge supports labels (via the Label plugin) — Narratorr can tag its downloads for easy identification. Enable the Label plugin in Deluge's preferences first.
+
+## Blackhole (Watch Folder)
+
+For download clients not directly supported, or when you want to manage downloads externally.
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| **Watch Folder** | — | Directory where Narratorr drops `.torrent` or `.nzb` files |
+
+Narratorr places the release file in the watch folder and immediately marks the download as "completed." It does **not** monitor progress — your external client handles the actual download. Narratorr will attempt to import from the watch folder on the next import cycle.
+
+:::caution
+Blackhole mode has no progress tracking. The Activity page will show the download as completed immediately, even though the actual download hasn't finished. Use this only when direct client integration isn't available.
+:::
+
 ## Docker Networking
 
 When both Narratorr and your download client run in Docker:

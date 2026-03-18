@@ -45,12 +45,30 @@ When enabled, requests from private IP addresses skip authentication entirely:
 
 This is useful for home lab setups where Narratorr sits behind a reverse proxy that handles external auth, and local services (like Audiobookshelf webhooks) need unauthenticated access.
 
+## Rate Limiting
+
+Login endpoints are rate-limited to prevent brute-force attacks:
+
+- **5 attempts** per **15-minute window** per IP address
+- Returns HTTP 429 with `Retry-After` header when exceeded
+- Window resets automatically
+
 ## How Credentials Are Stored
 
-- Passwords are hashed with **scrypt** using a unique random salt per user
-- Passwords are never stored in plain text
+### User Passwords
+- Hashed with **scrypt** using a unique random salt per user
+- Never stored in plain text
 - Comparison uses timing-safe equality to prevent timing attacks
 - Sessions are HMAC-SHA256 signed
+
+### Third-Party Credentials (Encryption at Rest)
+
+All sensitive configuration — indexer API keys, download client passwords, proxy URLs — is encrypted at rest in the database using **AES-256-GCM**.
+
+- Encryption key is auto-generated on first run and saved to `CONFIG_PATH/secret.key`
+- You can provide your own key via the `NARRATORR_SECRET_KEY` [environment variable](/configuration/environment-variables/)
+- API responses mask all credentials with `********` — encrypted values never leave the server
+- Proxy URLs are redacted from log output
 
 ## Setup Guidance
 

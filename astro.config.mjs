@@ -34,6 +34,7 @@ export default defineConfig({
             { label: 'Download Clients', slug: 'configuration/download-clients' },
             { label: 'Library & Folders', slug: 'configuration/library' },
             { label: 'Notifications', slug: 'configuration/notifications' },
+            { label: 'Network & Proxy', slug: 'configuration/network' },
             { label: 'Security & Auth', slug: 'configuration/security' },
             { label: 'Environment Variables', slug: 'configuration/environment-variables' },
           ],

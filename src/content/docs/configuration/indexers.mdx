@@ -75,7 +75,19 @@ The standard API for torrent indexers, supported by Jackett, Prowlarr, and many 
 </TabItem>
 </Tabs>
 
-Torznab is the recommended approach for private trackers like MyAnonamouse (MAM).
+Torznab is the recommended approach for most private trackers.
+
+## MyAnonamouse (MAM)
+
+Narratorr has a dedicated adapter for [MyAnonamouse](https://www.myanonamouse.net/), one of the largest private audiobook trackers. While MAM can be accessed through Prowlarr as a Torznab indexer, the native adapter provides optimized search with MAM's category system.
+
+| Field | Description |
+|-------|-------------|
+| **MAM ID** | Your personal MAM session ID (found in your browser cookies after logging in) |
+
+:::tip
+If you already have MAM configured in Prowlarr, importing via Prowlarr is the simplest setup. The dedicated MAM adapter is for users who want a direct connection without Prowlarr.
+:::
 
 ## Newznab
 

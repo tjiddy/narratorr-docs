@@ -16,7 +16,9 @@ Environment variables configure server-level behavior. Most users don't need to 
 | `LIBRARY_PATH` | `./audiobooks` | Root directory for your audiobook library. |
 | `DATABASE_URL` | `file:./config/narratorr.db` | libSQL database URL. Must include the `file:` prefix. |
 | `AUTH_BYPASS` | `false` | Disable authentication entirely. **Development/recovery only — never use in production.** |
-| `AUDIBLE_REGION` | `us` | Fallback Audible region for metadata lookups when not configured in Settings > General. Values: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. |
+| `URL_BASE` | `/` | Subpath for reverse proxy deployments (e.g., `/narratorr`). All routes and assets are served under this prefix. |
+| `NARRATORR_SECRET_KEY` | (auto-generated) | 32-byte hex string used to encrypt credentials at rest (AES-256-GCM). If not set, a key is auto-generated and saved to `CONFIG_PATH/secret.key` on first run. Set this explicitly if you want the same key across container rebuilds without persisting the config volume. |
+| `AUDIBLE_REGION` | `us` | Fallback region for metadata lookups when not configured in Settings > General. Values: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. |
 
 ## Docker Overrides
 

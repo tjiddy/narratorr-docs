@@ -49,12 +49,20 @@ Controls which releases are eligible to grab and how downloads are evaluated. Se
 | **Search Immediately** | Immediately search when adding a new book. Default: off. |
 | **Monitor for Upgrades** | Auto-enable upgrade monitoring for new books. Default: off. |
 
+## Network
+
+| Setting | Description |
+|---------|-------------|
+| **Proxy URL** | HTTP/HTTPS/SOCKS5 proxy for outbound requests. See [Network & Proxy](/configuration/network/). |
+
 ## Import
 
 | Setting | Description |
 |---------|-------------|
 | **Delete After Import** | Remove the downloaded files from the download client after successful import. |
 | **Minimum Seed Time** | For torrents: minimum time (in minutes) a torrent must seed before Narratorr will import it. Prevents premature removal from swarms. |
+| **Minimum Free Space** | Minimum free disk space (in GB) required before importing. Default: 5. Import is skipped if disk is below this threshold. |
+| **Max Concurrent Processing** | Maximum number of imports running simultaneously. Default: 2. |
 
 ## Processing
 
@@ -120,6 +128,7 @@ See [Backup & Restore](/guides/backup-restore/) for details.
 - [Indexers](/configuration/indexers/) — configure search sources
 - [Download Clients](/configuration/download-clients/) — configure torrent/Usenet clients
 - [Notifications](/configuration/notifications/) — configure event notifications
+- [Network & Proxy](/configuration/network/) — configure proxy and FlareSolverr
 - [Security & Auth](/configuration/security/) — configure authentication
 - [Environment Variables](/configuration/environment-variables/) — server-level configuration
 - [Import Lists](/guides/import-lists/) — add books from external sources
