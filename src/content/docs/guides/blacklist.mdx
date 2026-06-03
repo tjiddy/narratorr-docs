@@ -12,7 +12,7 @@ Releases are added to the blacklist automatically when:
 - The **quality gate** auto-rejects a download (quality same or worse than existing)
 - You manually **reject** a download from the Activity page review
 
-You can also manually add entries from the blacklist management page.
+You can also manually blacklist any release from the search results modal (the Blacklist button on each release card). Entries are recorded with reason 'Other'.
 
 ## Blacklist Types
 
@@ -39,11 +39,12 @@ Each entry records why it was blacklisted:
 | `spam` | Fake or spam release |
 | `download_failed` | Download itself failed |
 | `infrastructure_error` | Download client or network error |
+| `user_cancelled` | User Cancelled — download was cancelled by the user |
 | `other` | Manual blacklist or unspecified |
 
 ## Managing the Blacklist
 
-The blacklist is accessible from **System > Blacklist** (or the Activity page). You can:
+The blacklist is managed from **Settings > Blacklist**. You can:
 
 - **View** all blacklisted releases with their reason, type, and expiry date
 - **Toggle** an entry between temporary and permanent
@@ -52,4 +53,4 @@ The blacklist is accessible from **System > Blacklist** (or the Activity page). 
 
 ## How It Affects Search
 
-During search (manual, scheduled, and RSS), Narratorr checks all result info hashes against the active blacklist. Blacklisted releases are filtered out before ranking. Temporary entries that have passed their expiry date are not considered active.
+During search (manual, scheduled, and RSS), Narratorr checks every result's info hash (torrents) and GUID (Usenet) against the active blacklist. Blacklisted releases are filtered out before ranking. Temporary entries that have passed their expiry date are not considered active.

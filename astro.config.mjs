@@ -15,7 +15,7 @@ export default defineConfig({
       ],
       customCss: ['./src/styles/custom.css'],
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/todd/narratorr' },
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/tjiddy/narratorr' },
       ],
       sidebar: [
         {
@@ -48,7 +48,6 @@ export default defineConfig({
             { label: 'RSS Feeds', slug: 'guides/rss-feeds' },
             { label: 'Manual Import', slug: 'guides/manual-import' },
             { label: 'Blacklist', slug: 'guides/blacklist' },
-            { label: 'Recycling Bin', slug: 'guides/recycling-bin' },
             { label: 'Tagging & Cover Art', slug: 'guides/tagging' },
             { label: 'Backup & Restore', slug: 'guides/backup-restore' },
             { label: 'Features Reference', slug: 'guides/features' },

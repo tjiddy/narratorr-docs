@@ -5,7 +5,7 @@ description: Import audiobooks from your filesystem into Narratorr's library.
 
 Manual import lets you bring existing audiobooks into Narratorr's library from a directory on disk — useful for migrating an existing collection or importing files you've obtained outside of Narratorr.
 
-Access from the **Activity** dropdown or directly at `/manual-import`.
+Access it from the **Library** page toolbar overflow menu and choose **Import**, or go directly to `/import`.
 
 ## Workflow
 
@@ -13,7 +13,9 @@ Access from the **Activity** dropdown or directly at `/manual-import`.
 
 Enter or browse to a directory containing audiobook folders. The directory should have subfolders for each book (e.g., organized as `Author/Title` or similar).
 
-Click the folder icon to open the directory browser, which lets you navigate the filesystem visually.
+Click the **Browse** button to open the directory browser, which lets you navigate the filesystem visually. The browser also offers **Favorite Folders** and **Recent Folders** lists so you can quickly return to directories you use often.
+
+Manual Import is for folders **outside** your library path. If you point it at a folder inside the library path, the scan is blocked and you're redirected to the separate **Library Import** flow instead.
 
 ### Step 2: Scan and Review
 
@@ -30,7 +32,8 @@ Each card shows:
 | **Matched** | Confident metadata match found — ready to import |
 | **Review** | Partial match — you may want to verify or edit the metadata |
 | **No Match** | No metadata match found — edit to provide correct details |
-| **Duplicate** | Book already exists in your library (skipped) |
+| **Already in library** | A matching book already exists in your library — starts unchecked, but can still be force-imported |
+| **Duplicate in scan** | Another folder in the same scan resolves to this book — starts unchecked, but can still be force-imported |
 
 You can:
 
@@ -44,14 +47,14 @@ Choose an import mode:
 
 | Mode | Behavior |
 |------|----------|
-| **Move** | Moves files to the library folder (default) |
-| **Copy** | Copies files, leaving originals in place |
+| **Copy** | Copies files into the library folder, leaving originals in place (default) |
+| **Move** | Moves files to the library folder |
 
 Click **Import** to process all selected books. Narratorr moves/copies each book's files into the library using your configured [folder format](/guides/folder-format/), creates database records, and runs any enabled post-processing (audio processing, tagging).
 
 ## Tips
 
 - Point to a parent folder containing multiple book subfolders — Narratorr discovers each one
-- Books that already exist in your library are flagged as duplicates and auto-skipped
+- Books that already exist in your library (or appear more than once in the scan) are flagged and start unchecked, but you can still select them to force-import
 - Unmatched books can still be imported after manually entering the metadata
-- The directory browser defaults to your configured library path
+- Use the **Favorite Folders** and **Recent Folders** lists in the browser to jump back to directories you scan often

@@ -23,6 +23,10 @@ services:
   narratorr:
     image: narratorr/narratorr:latest
     container_name: narratorr
+    environment:
+      - PUID=1000 # Set container process UID (default: 911)
+      - PGID=1000 # Set container process GID (default: 911)
+      - TZ=America/New_York # Set to your timezone
     ports:
       - "3000:3000"
     volumes:
@@ -44,6 +48,9 @@ docker compose up -d
 ```bash
 docker run -d \
   --name narratorr \
+  -e PUID=1000 \
+  -e PGID=1000 \
+  -e TZ=America/New_York \
   -p 3000:3000 \
   -v ./config:/config \
   -v /path/to/audiobooks:/audiobooks \
@@ -71,6 +78,8 @@ The `/downloads` volume must match or overlap with what your download client see
 
 The Docker image sets sensible defaults. You typically don't need to override anything. See [Environment Variables](/configuration/environment-variables/) for the full reference.
 
+`PUID` and `PGID` control the user and group the container runs as (the image defaults to `911`). Set them to match the owner of your mounted `/config`, `/audiobooks`, and `/downloads` directories on the host to avoid permission-denied errors. `TZ` sets the container timezone for scheduled jobs and log timestamps.
+
 Once the container is running, open **http://localhost:3000** and continue to [First Run Setup](/getting-started/first-run/).
 
 ## Manual Install (From Source)
@@ -80,7 +89,7 @@ Once the container is running, open **http://localhost:3000** and continue to [F
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/todd/narratorr.git
+   git clone https://github.com/tjiddy/narratorr.git
    cd narratorr
    ```
 

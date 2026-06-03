@@ -16,6 +16,9 @@ services:
   narratorr:
     image: narratorr/narratorr:latest
     container_name: narratorr
+    environment:
+      - PUID=1000
+      - PGID=1000
     ports:
       - "3000:3000"
     volumes:
@@ -51,6 +54,7 @@ services:
 **Key points:**
 - `/data/downloads` is shared between Narratorr and qBittorrent — Narratorr can see completed downloads
 - `/data/audiobooks` is shared between Narratorr and Audiobookshelf — imported books appear automatically
+- `PUID`/`PGID` set the user and group Narratorr runs as. The image defaults to UID/GID `911` when these are unset — match them to your download client (`1000` here) so all containers share the same ownership on `/data/downloads` and `/data/audiobooks`, otherwise Narratorr may not be able to read completed downloads or write to the library
 - qBittorrent WebUI: `http://localhost:8080` (default credentials: admin / adminadmin)
 - Audiobookshelf: `http://localhost:13378`
 
@@ -67,6 +71,9 @@ services:
   narratorr:
     image: narratorr/narratorr:latest
     container_name: narratorr
+    environment:
+      - PUID=1000
+      - PGID=1000
     ports:
       - "3000:3000"
     volumes:
@@ -113,6 +120,9 @@ services:
   narratorr:
     image: narratorr/narratorr:latest
     container_name: narratorr
+    environment:
+      - PUID=1000
+      - PGID=1000
     ports:
       - "3000:3000"
     volumes:
@@ -150,6 +160,9 @@ services:
   narratorr:
     image: narratorr/narratorr:latest
     container_name: narratorr
+    environment:
+      - PUID=1000
+      - PGID=1000
     ports:
       - "3000:3000"
     volumes:

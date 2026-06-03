@@ -34,14 +34,14 @@ The simplest setup is to use the same container path in both services.
 
 ## Configuration
 
-Configure remote path mappings per download client in **Settings > Download Clients**. Edit a client and add mappings in the **Remote Path Mappings** section.
+Configure remote path mappings per download client in **Settings > Download Clients**. You can add mappings either when creating a new download client or when editing an existing one, in the **Remote Path Mappings** section.
 
 | Field | Description |
 |-------|-------------|
 | **Remote Path** | The path as reported by the download client (e.g., `/downloads/`) |
 | **Local Path** | The equivalent path as Narratorr sees it (e.g., `/data/downloads/`) |
 
-When Narratorr receives a path from the download client, it checks if the path starts with any configured remote path. If it matches, the remote prefix is replaced with the local path.
+When Narratorr receives a path from the download client, it checks if the path starts with any configured remote path. If it matches, the remote prefix is replaced with the local path. If more than one mapping matches, Narratorr uses the longest (most specific) remote path.
 
 ## Examples
 
@@ -77,5 +77,5 @@ Each client can have its own mappings. A qBittorrent container and a SABnzbd con
 If imports fail after configuring mappings:
 1. Check the Narratorr logs (set log level to `debug`) — they show the original path and the mapped path
 2. Verify the mapped path is accessible inside the Narratorr container: `docker exec narratorr ls /your/mapped/path`
-3. Ensure trailing slashes are consistent — `/downloads/` and `/downloads` can produce different results
+3. Trailing slashes do not matter — Narratorr normalizes them, so `/downloads` and `/downloads/` behave identically
 4. Remember that path mappings are prefix replacements — the remote path must match the **start** of the reported path

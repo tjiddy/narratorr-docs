@@ -18,7 +18,7 @@ Syncs your Audiobookshelf library into Narratorr. Useful for migrating from Audi
 | **Name** | Display name for this list |
 | **Server URL** | Your Audiobookshelf instance URL (e.g., `http://audiobookshelf:13378`) |
 | **API Key** | Audiobookshelf API key (Settings > Users > your user) |
-| **Library ID** | Which Audiobookshelf library to sync from |
+| **Library** | Which Audiobookshelf library to sync from. After entering the Server URL and API Key, click **Fetch Libraries** to pick the library from a dropdown by name; entering a raw library ID is the fallback when no libraries have been fetched. |
 
 ### NYT Bestsellers
 
@@ -28,7 +28,7 @@ Adds books from the New York Times bestseller lists. Good for automatically trac
 |-------|-------------|
 | **Name** | Display name for this list |
 | **API Key** | NYT Developer API key ([developer.nytimes.com](https://developer.nytimes.com)) |
-| **List** | Which bestseller list to track. Default: `audio-fiction`. |
+| **Bestseller List** | Dropdown with two choices: Audio Fiction (`audio-fiction`, default) or Audio Nonfiction (`audio-nonfiction`). |
 
 ### Hardcover
 
@@ -48,15 +48,15 @@ Every import list has these shared settings:
 | Setting | Description |
 |---------|-------------|
 | **Enabled** | Toggle the list on/off without deleting it |
-| **Sync Interval** | How often to sync, in minutes. Default: 1440 (daily). |
+| **Sync Interval** | How often to sync, in minutes (minimum 5). Default: 1440 (daily). |
 
 ## How Sync Works
 
 1. On each sync cycle, Narratorr fetches items from the external source
-2. Each item is enriched with metadata (ASIN lookup) if not already known
+2. Each item is enriched with metadata: items with an ASIN are looked up directly (identity match), while items without an ASIN are matched via a metadata search whose top candidate must pass a title-similarity and author check before its metadata is adopted — otherwise the raw provider fields are kept
 3. If the book doesn't already exist in your library, it's added with status `wanted`
 4. Duplicate books (matching ASIN or title+author) are silently skipped
-5. Newly added books appear in your library and are picked up by the next search cycle
+5. Newly added books appear in your library. If **Search Immediately** (quality settings) is enabled, an import-list-added book triggers a search right away; otherwise it's picked up on the next scheduled search cycle
 
 ## Testing and Preview
 

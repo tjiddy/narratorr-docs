@@ -16,12 +16,18 @@ The Activity page (`/activity`) is your command center for monitoring what Narra
 | Event Type | Fires When |
 |-----------|-----------|
 | `grabbed` | A release was sent to a download client |
+| `grab_failed` | Sending a release to the download client failed |
 | `download_completed` | Download finished successfully |
 | `download_failed` | Download failed |
 | `imported` | Book was imported into the library |
 | `import_failed` | Import failed |
-| `upgraded` | An existing book was replaced with a higher-quality version |
-| `deleted` | A book was deleted (moved to recycling bin) |
+| `book_added` | A book record was created (e.g. via library scan or manual add) |
+| `metadata_fixed` | Book metadata was corrected via fix-match |
+| `wrong_release` | A release was rejected as the wrong match |
+| `merge_started` | A book merge was started |
+| `merged` | A book merge completed |
+| `merge_failed` | A book merge failed |
+| `deleted` | A book was deleted |
 | `renamed` | A book's files were renamed/moved |
 | `file_tagged` | Audio file tags were written |
 | `held_for_review` | Quality gate held a download for manual review |
@@ -57,14 +63,15 @@ The scheduled search job runs on a configurable interval (Settings > Search > In
 
 ## Prowlarr Sync
 
-If you use [Prowlarr](https://prowlarr.com/) to manage your indexers, you can sync them to Narratorr instead of configuring each one manually.
+If you use [Prowlarr](https://prowlarr.com/) to manage your indexers, you can have it push them to Narratorr automatically instead of configuring each one manually. Narratorr exposes a Readarr-compatible API (the Prowlarr-compat shim), so Prowlarr treats Narratorr like any other Readarr application and syncs indexers into it.
 
-1. Go to **Settings > Indexers > Prowlarr Sync**
-2. Enter your Prowlarr URL and API key
-3. Click **Preview** to see what would be synced (new, updated, removed indexers)
-4. Select the items to sync and click **Apply**
+The setup happens entirely inside Prowlarr — there is no sync screen in Narratorr:
 
-Prowlarr sync is a one-time operation, not continuous. Re-run it when you add or change indexers in Prowlarr.
+1. In **Prowlarr**, go to **Settings > Apps** and add Narratorr as a **Readarr** application
+2. Point it at your Narratorr URL and API key
+3. Prowlarr then pushes its torznab/newznab indexers into Narratorr automatically, keeping them in sync as you add or change indexers in Prowlarr
+
+Narratorr accepts Readarr's echo-only fields liberally (it strips unknown fields rather than rejecting them), so Prowlarr's app-sync works without extra configuration.
 
 ## Health Checks
 
@@ -77,6 +84,7 @@ Narratorr periodically runs health checks and displays results in the sidebar. C
 | **Library Root** | Verifies the library path exists and is writable |
 | **Disk Space** | Warns when free space drops below threshold |
 | **ffmpeg** | Verifies ffmpeg is accessible (if configured) |
+| **Hardcover** | Tests the Hardcover API connection when a Hardcover API key is configured in Settings > Search > Metadata (skipped if no key is set) |
 | **Stuck Downloads** | Flags downloads with no progress for over an hour |
 
 Each check reports `healthy`, `warning`, or `error`. State transitions trigger notifications if you have health event notifications configured.
@@ -98,7 +106,7 @@ If your browser disconnects, the UI falls back to periodic polling.
 
 ## Post-Processing Script
 
-Run a custom script after each successful import. Configure in **Settings > Processing**.
+Run a custom script after each successful import. Configure in **Settings > Post Processing**.
 
 | Setting | Description |
 |---------|-------------|
@@ -135,7 +143,7 @@ Click any book to go to its detail page.
 
 Narratorr periodically checks GitHub for new releases. When a newer version is available, a notification banner appears in the UI with a link to the release page.
 
-You can dismiss the notification for a specific version — it won't reappear until an even newer version is available. Configure in **Settings > System > Dismissed Update Version**.
+You can dismiss the notification for a specific version — it won't reappear until an even newer version is available. The dismissed version is stored automatically when you dismiss the banner; it is internal state, not a field you edit in Settings.
 
 ## Pagination
 

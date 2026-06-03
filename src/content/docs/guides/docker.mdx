@@ -24,6 +24,10 @@ volumes:
 If you don't mount `/config`, your database and settings are lost when the container is removed.
 :::
 
+:::note
+The image ships with `ffmpeg` bundled for audio post-processing (M4B conversion, chapter embedding, cover-art embedding), so no external `ffmpeg` install is required.
+:::
+
 ## Networking
 
 ### Connecting to Other Containers
@@ -34,6 +38,10 @@ When Narratorr and your download client are in the same `docker-compose.yml`, us
 services:
   narratorr:
     image: narratorr/narratorr:latest
+    environment:
+      - PUID=1000   # default: 911
+      - PGID=1000   # default: 911
+      - TZ=America/New_York
     # ...
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
@@ -74,16 +82,18 @@ Narratorr exposes a health check endpoint:
 GET /api/health
 ```
 
-Returns `200 OK` when the server is running. Use this for container orchestration, monitoring, or load balancer health probes:
+Returns `200 OK` when the server is running. Use this for container orchestration, monitoring, or load balancer health probes.
+
+The image already defines its own `HEALTHCHECK` (with a built-in start period), so no manual configuration is needed. If you do want to override it — for example in a load balancer or external monitor — match what the image does so it keeps working under a reverse-proxy subpath:
 
 ```yaml
 services:
   narratorr:
     image: narratorr/narratorr:latest
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000${URL_BASE:-}/api/health || exit 1"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
 ```
 
@@ -124,8 +134,13 @@ Automate backups with a cron job or your preferred backup tool. The SQLite datab
 
 See [Environment Variables](/configuration/environment-variables/) for the complete reference. The Docker image sets production defaults automatically.
 
+Because the image is based on LinuxServer.io, it also honors these standard variables:
+
+- **`PUID` / `PGID`** — the runtime UID/GID used for file ownership of everything Narratorr writes (config database, imported audiobooks). Default `911`; set them to match the owner of your host directories. See the volume-permissions note under [Common Issues](#common-issues).
+- **`TZ`** — the container timezone (e.g. `America/New_York`), used for log timestamps and scheduling.
+
 ## Common Issues
 
-- **Container can't write to volumes** — check file permissions. Narratorr runs as root in the default image.
+- **Container can't write to volumes** — Narratorr runs as the unprivileged `abc` user (LinuxServer.io base image). Set `PUID`/`PGID` to match the UID/GID that owns your host directories (default `911`). Run `id` on the host to find the right values.
 - **Can't connect to download client** — use service names, not `localhost`. See [Troubleshooting](/troubleshooting/#download-client-wont-connect).
 - **Downloads complete but don't import** — the `/downloads` volume must be accessible to both containers with matching paths. See [Remote Path Mappings](/guides/remote-path-mappings/).

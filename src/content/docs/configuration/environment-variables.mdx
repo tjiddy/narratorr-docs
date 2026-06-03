@@ -13,10 +13,12 @@ Environment variables configure server-level behavior. Most users don't need to 
 | `NODE_ENV` | `development` | Environment mode. Set to `production` in Docker. |
 | `CORS_ORIGIN` | `http://localhost:5173` | Allowed CORS origin for the frontend. Only needed in development or split-origin deployments. |
 | `CONFIG_PATH` | `./config` | Directory for the database, settings, and other config files. |
-| `LIBRARY_PATH` | `./audiobooks` | Root directory for your audiobook library. |
-| `DATABASE_URL` | `file:./config/narratorr.db` | libSQL database URL. Must include the `file:` prefix. |
+| `DATABASE_URL` | `file:./config/narratorr.db` | libSQL/SQLite database path. The `file:` prefix is optional and is stripped if present. |
 | `AUTH_BYPASS` | `false` | Disable authentication entirely. **Development/recovery only — never use in production.** |
 | `URL_BASE` | `/` | Subpath for reverse proxy deployments (e.g., `/narratorr`). All routes and assets are served under this prefix. |
+| `TRUSTED_PROXIES` | (unset) | Comma-separated reverse-proxy IPs/CIDRs (e.g. `10.0.0.0/8,192.168.0.0/16`) so the real client IP is read from `X-Forwarded-For`. Set this when running behind a reverse proxy — required for forms-auth `Secure` cookies and the local-network bypass to work correctly. See the [Security](/configuration/security/) docs. |
+| `LOG_LEVEL` | `info` | Initial log verbosity at boot: `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`. The General settings log level overrides this once the server is running. |
+| `MONITOR_INTERVAL_CRON` | `*/30 * * * * *` | Download-monitor poll cadence as a cron expression. Advanced — rarely changed. |
 | `NARRATORR_SECRET_KEY` | (auto-generated) | 32-byte hex string used to encrypt credentials at rest (AES-256-GCM). If not set, a key is auto-generated and saved to `CONFIG_PATH/secret.key` on first run. Set this explicitly if you want the same key across container rebuilds without persisting the config volume. |
 | `AUDIBLE_REGION` | `us` | Fallback region for metadata lookups when not configured in Settings > General. Values: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. |
 
@@ -27,11 +29,12 @@ The Docker image and `docker-compose.yml` set these automatically:
 ```
 NODE_ENV=production
 CONFIG_PATH=/config
-LIBRARY_PATH=/audiobooks
 DATABASE_URL=file:/config/narratorr.db
 ```
 
 You generally don't need to override these unless you have a custom volume layout.
+
+The library root is not set via an environment variable — it's a Settings value (Settings > General > Library). The container conventionally mounts your library at `/audiobooks`, and you point Settings at that path.
 
 ## Timezone
 
@@ -55,9 +58,13 @@ services:
     environment:
       - PORT=8080
       - AUDIBLE_REGION=uk
+      - PUID=1000
+      - PGID=1000
     ports:
       - "8080:8080"
     volumes:
       - ./config:/config
       - /data/audiobooks:/audiobooks
 ```
+
+`PUID` and `PGID` set the UID/GID the container runs as (linuxserver.io base image convention, default `911`). Set them to your host user's IDs for correct file ownership on the mounted `/config` and `/audiobooks` volumes.

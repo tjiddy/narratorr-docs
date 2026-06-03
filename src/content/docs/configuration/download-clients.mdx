@@ -87,13 +87,18 @@ For download clients not directly supported, or when you want to manage download
 
 | Field | Default | Description |
 |-------|---------|-------------|
-| **Watch Folder** | — | Directory where Narratorr drops `.torrent` or `.nzb` files |
+| **Watch Directory** | — | Directory where Narratorr drops `.torrent` or `.nzb` files |
+| **Protocol** | `torrent` | Whether Narratorr writes `.torrent` or `.nzb` files (Torrent / Usenet) |
 
-Narratorr places the release file in the watch folder and immediately marks the download as "completed." It does **not** monitor progress — your external client handles the actual download. Narratorr will attempt to import from the watch folder on the next import cycle.
+Both fields are required. Narratorr places the release file in the watch directory and immediately marks the download as "completed." It does **not** monitor progress — your external client handles the actual download. Narratorr will attempt to import from the watch folder on the next import cycle.
 
 :::caution
 Blackhole mode has no progress tracking. The Activity page will show the download as completed immediately, even though the actual download hasn't finished. Use this only when direct client integration isn't available.
 :::
+
+## Priority
+
+Each download client has a **Priority** value (0–100, default 50, where lower is preferred). When multiple clients are enabled, Narratorr uses the priority to decide which one to send a grabbed release to.
 
 ## Docker Networking
 
@@ -104,6 +109,8 @@ When both Narratorr and your download client run in Docker:
 - `localhost` inside a container refers to that container itself, not the host machine
 
 If your download client runs on the host (not in Docker), use `host.docker.internal` or the host's LAN IP.
+
+If Narratorr and your client see the filesystem differently, configure **Remote Path Mappings** directly on the client form — see the [Remote Path Mappings](/guides/remote-path-mappings/) guide.
 
 ## Testing
 

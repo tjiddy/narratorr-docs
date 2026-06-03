@@ -9,9 +9,11 @@ After [installing Narratorr](/getting-started/installation/), you'll configure t
 
 <Steps>
 
-1. **Set up authentication**
+1. **Turn on authentication**
 
-   Navigate to **Settings > Security**. Choose an authentication mode:
+   On a fresh install, **authentication ships OFF by default** (mode `None`) — anyone who can reach the app has full access. Enabling it should be your very first action.
+
+   Navigate to **Settings > Security** and choose an authentication mode:
    - **Forms** (recommended) — creates a login page with session-based auth
    - **Basic** — HTTP Basic Auth prompted by the browser
    - **None** — no auth (only if Narratorr is on an isolated network)
@@ -20,17 +22,21 @@ After [installing Narratorr](/getting-started/installation/), you'll configure t
 
 2. **Configure your library path**
 
-   Go to **Settings > Library**. Set the path where Narratorr should store your audiobooks. In Docker, this is `/audiobooks` by default (mapped to a host directory via volumes).
+   Go to **Settings > General** (the library path is the first section there). Set the path where Narratorr should store your audiobooks. In Docker, this is `/audiobooks` by default (mapped to a host directory via volumes).
 
 3. **Add an indexer**
 
    Go to **Settings > Indexers** and add at least one source to search:
-   - **Prowlarr import** — if you already use Prowlarr, sync your indexers in one step
    - **Torznab** — for torrent indexers via Jackett or Prowlarr
    - **Newznab** — for Usenet indexers
-   - **AudioBookBay** — direct scraper (may require FlareSolverr)
+   - **MyAnonamouse (MAM)** — direct integration with the MAM private audiobook tracker (`mam_id` + freeleech-wedge support)
+   - **AudioBookBay** — a best-effort, Cloudflare-gated scraper that often needs FlareSolverr and can be unreliable; prefer Torznab, Newznab, or MAM as your primary sources
 
    Click **Test** to verify the connection. See [Indexers](/configuration/indexers/) for per-type setup.
+
+   :::note
+   Prowlarr is not an indexer type you add inside Narratorr. Instead, add Narratorr to Prowlarr as an application — it impersonates Readarr's API — and Prowlarr pushes your indexers into Narratorr automatically. See [Indexers](/configuration/indexers/) for the setup direction.
+   :::
 
 4. **Add a download client**
 

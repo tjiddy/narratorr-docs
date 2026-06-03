@@ -60,6 +60,7 @@ Login endpoints are rate-limited to prevent brute-force attacks:
 - Never stored in plain text
 - Comparison uses timing-safe equality to prevent timing attacks
 - Sessions are HMAC-SHA256 signed
+- Changing your password or username signs you out everywhere except the current device — all other active sessions are invalidated
 
 ### Third-Party Credentials (Encryption at Rest)
 
@@ -86,6 +87,16 @@ If Narratorr is behind a reverse proxy (Traefik, Caddy, nginx):
 - Configure the proxy to terminate HTTPS
 - Let Narratorr handle authentication internally (don't rely on proxy-level basic auth unless you prefer it)
 - Set the `CORS_ORIGIN` [environment variable](/configuration/environment-variables/) if the frontend is served from a different origin
+- Set the `TRUSTED_PROXIES` [environment variable](/configuration/environment-variables/) (comma-separated proxy IPs/CIDRs) so Narratorr trusts the `X-Forwarded-*` headers your proxy sends
+
+:::caution
+Without `TRUSTED_PROXIES`, two things break behind a proxy:
+
+- **Forms-auth session cookies lose the `Secure` attribute.** Narratorr derives `Secure` from the client protocol, which only reflects the real (HTTPS) protocol when it trusts the proxy's forwarded headers — otherwise the cookie is set over the proxy's plain-HTTP hop.
+- **Local Network Bypass treats every request as local.** Every forwarded request appears to come from the proxy's private IP, so external traffic is authenticated as a local-bypass connection and skips auth.
+
+Narratorr emits a boot warning when it detects a likely reverse-proxy deployment without `TRUSTED_PROXIES` set.
+:::
 
 ## Locked Out?
 

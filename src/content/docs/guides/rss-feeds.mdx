@@ -7,21 +7,20 @@ RSS sync polls your indexers' RSS feeds for new releases and automatically grabs
 
 ## Enabling RSS
 
-Configure in **Settings > RSS**.
+Configure in **Settings > Search**, in the **RSS Sync** subsection.
 
 | Setting | Description |
 |---------|-------------|
-| **Enabled** | Master toggle for RSS sync |
-| **Interval** | How often to poll RSS feeds, in minutes. Range: 5–1440. Default: 30. |
+| **Enable RSS Sync** | Master toggle for RSS sync |
+| **RSS Interval (minutes)** | How often to poll RSS feeds, in minutes. Range: 5–1440. Default: 30. |
 
 ## How It Works
 
 1. Narratorr polls the RSS feed of each RSS-capable indexer
-2. Each new feed item is matched against your **wanted** books and books with **monitor for upgrades** enabled
+2. Each new feed item is matched against your **wanted** books
 3. Matching is fuzzy — title and author are compared with a similarity threshold (70%)
 4. Matched results pass through the same [quality gate filters](/guides/quality-gates/#search-time-filters) as regular search (grab floor, min seeders, reject/required words, blacklist)
-5. For upgrade candidates, the new release must be strictly better quality (higher MB/hour)
-6. The best-ranked result is grabbed automatically
+5. The best-ranked result is grabbed automatically
 
 ## What Makes an Indexer RSS-Capable
 

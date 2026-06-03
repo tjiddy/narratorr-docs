@@ -5,41 +5,56 @@ description: Merge multi-file downloads and convert audio formats using ffmpeg.
 
 Narratorr can process audiobook files after import — merging multiple files into a single audiobook file and converting between formats. This is powered by ffmpeg.
 
+Processing is not an automatic step in the import pipeline. Files are imported as-is, and you then trigger processing manually: a per-book **Merge** from the book page or a bulk **Convert** job. Processing runs only when an ffmpeg path is configured — there is no master on/off switch.
+
 ## Requirements
 
 - **Docker:** ffmpeg is pre-installed in the production image. No setup needed.
-- **Manual install:** Install ffmpeg and configure its path in **Settings > Processing > ffmpeg Path**.
+- **Manual install:** Install ffmpeg and configure its path in **Settings > Post Processing > ffmpeg Path**.
 
 ## Settings
 
-Configure audio processing in **Settings > Processing**.
+Configure audio processing in **Settings > Post Processing**.
 
 | Setting | Description |
 |---------|-------------|
-| **Enabled** | Master toggle for all audio processing |
-| **ffmpeg Path** | Path to the ffmpeg binary. Auto-detected in Docker. |
-| **Output Format** | Target format: `m4b` (recommended for audiobooks — supports chapters) or `mp3` |
-| **Keep Original Bitrate** | Retain the source file's bitrate instead of re-encoding to the target bitrate |
+| **ffmpeg Path** | Path to the ffmpeg binary. Auto-detected in Docker. Processing runs only when this is set. |
+| **Output Format** | Target format: `m4b` (chapters) or `mp3`. _Currently inert — see note below; output is always M4B._ |
+| **Keep Original Bitrate** | Drop the target-bitrate cap and re-encode at (up to) the source bitrate instead of the target bitrate |
 | **Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when keep original bitrate is enabled. |
-| **Merge Behavior** | When to merge files (see below) |
+| **Merge Behavior** | When to merge files. _Currently inert — see note below; merge always combines when 2+ files exist._ |
+| **Max Concurrent Jobs** | Maximum number of processing jobs that run at once. Default: 2. |
+| **Post-Processing Script** | Absolute path to a script run after each successful import. Receives `NARRATORR_BOOK_TITLE`, `NARRATORR_BOOK_AUTHOR`, `NARRATORR_IMPORT_PATH`, and `NARRATORR_IMPORT_FILE_COUNT` env vars. |
+| **Script Timeout** | Maximum seconds the post-processing script may run. Default: 300. Required when a script is set. |
+
+:::caution
+**Output Format** and **Merge Behavior** are stored and shown in the UI but are not currently applied. The output format is always M4B, and merging always combines when there are 2 or more audio files — selecting `mp3`, "Multi-file only", or "Never" has no effect on the actual output.
+:::
+
+### Tag Embedding
+
+The same **Settings > Post Processing** page configures **Tag Embedding** — writing metadata into the audio file's tags on import. It offers a Tag Embedding toggle, a Tag Mode (populate missing tags only, or overwrite existing tags), and an Embed Cover Art option. Like the rest of audio processing, tag embedding depends on ffmpeg.
 
 ## Merge Behavior
 
 | Option | Behavior |
 |--------|----------|
-| **Always** | Merge all audiobook files into a single output file, even single-file downloads |
-| **Multi-file only** | Only merge when the download contains multiple audio files (most common choice) |
+| **Always** | Merge audiobook files into a single output file |
+| **Multi-file only** | Only merge when the download contains multiple audio files |
 | **Never** | Skip merging entirely — files are imported as-is |
 
-"Multi-file only" is the most common setting. Many audiobook releases come as 20-50 individual chapter files — merging produces a single M4B with chapter markers that's easier to manage.
+The Merge operation only runs on books that have 2 or more top-level audio files; single-file books are skipped/rejected. Many audiobook releases come as 20-50 individual chapter files — merging produces a single M4B with chapter markers that's easier to manage.
 
 ## How It Works
 
-1. A download completes and Narratorr begins the import process
-2. If processing is enabled, Narratorr checks the merge behavior setting
-3. If merging is needed, ffmpeg combines the audio files in order
-4. The output is encoded to the configured format and bitrate (unless keep original bitrate is on)
-5. The merged file is placed in the library folder
+Import places the downloaded files into the library folder as-is — no processing happens automatically. You then trigger processing on demand:
+
+1. From a book's page, start a **Merge** (requires 2+ audio files). The job is queued and runs under a concurrency limit, with progress reporting.
+2. Merge copies the files to a staging directory and runs ffmpeg to combine them in order.
+3. The output is encoded to M4B at the configured bitrate (unless keep original bitrate is on).
+4. Narratorr verifies the output, then swaps it into the book folder and deletes the originals.
+
+A bulk **Convert** job (from settings) applies the same processing across multiple books.
 
 ## Bitrate Guidance
 
@@ -53,11 +68,11 @@ Configure audio processing in **Settings > Processing**.
 
 For spoken word, 64–128 kbps is the sweet spot. Higher bitrates increase file size without perceptible quality improvement for narration.
 
-When **keep original bitrate** is enabled, the bitrate setting is ignored and the source bitrate is preserved. Use this when your source files are already at your preferred quality and you don't want re-encoding losses.
+When **keep original bitrate** is enabled, the bitrate setting is ignored. This does not mean a lossless copy — files are still re-encoded, but the target-bitrate cap is dropped so the output is encoded at (up to) the source bitrate. The effective bitrate is capped at the lower of the source and target to prevent upsampling. Use this when your source files are already at your preferred quality and you don't want to force a lower target bitrate.
 
 ## Troubleshooting
 
-- **"ffmpeg not found"** — install ffmpeg or verify the path in Settings > Processing
+- **"ffmpeg not found"** — install ffmpeg or verify the path in Settings > Post Processing
 - **Processing takes a long time** — merging large audiobooks (20+ hours) is CPU-intensive. This is normal.
 - **Output file is much larger/smaller than expected** — check your bitrate setting. A high bitrate on a low-quality source won't improve quality but will increase size.
 - **"Unsupported format"** — the source file uses a codec ffmpeg can't decode. Check ffmpeg's supported formats.

@@ -5,9 +5,9 @@ description: Automatic audiobook recommendations based on your library's authors
 
 Narratorr's Discover feature analyzes your library and suggests new audiobooks you might enjoy. It looks at the authors, series, genres, and narrators you already own and finds related titles.
 
-## Enabling Discovery
+## Configuring Discovery
 
-Go to **Settings > Discovery** and toggle it on. Once enabled, Narratorr generates suggestions on a configurable schedule.
+Discovery is enabled by default — Narratorr generates suggestions on a configurable schedule out of the box. To turn it off, or to adjust its interval and limits, go to **Settings > General** (Discovery section).
 
 | Setting | Description |
 |---------|-------------|
@@ -15,7 +15,6 @@ Go to **Settings > Discovery** and toggle it on. Once enabled, Narratorr generat
 | **Interval** | How often (in hours) to refresh suggestions. Range: 1–168. Default: 24. |
 | **Max Per Author** | Maximum suggestions generated per author. Range: 1–50. Default: 5. Prevents a single prolific author from dominating the feed. |
 | **Expiry Days** | Suggestions expire after this many days if not acted on. Range: 1+. Default: 90. |
-| **Snooze Days** | How long a snoozed suggestion stays hidden. Range: 1+. Default: 30. |
 
 ## How Scoring Works
 
@@ -43,9 +42,9 @@ Scores get bonus points for recency (+10 if published in the last 2 years), dura
 
 ### Weight Multipliers
 
-Each reason category has a weight multiplier (0–1) in **Settings > Discovery > Weight Multipliers**. Lower the multiplier to de-emphasize a category, or set it to 0 to exclude it entirely.
+Each reason category has a weight multiplier (0–1), but these are **not** user-configurable — Narratorr computes them automatically from your dismissal patterns on each refresh cycle.
 
-Narratorr also auto-tunes weights based on your dismissal patterns. If you consistently dismiss genre-based suggestions (more than 80% dismissed with at least 5 suggestions), that category's multiplier is automatically reduced — down to a minimum of 0.25. This prevents the engine from repeatedly suggesting things you're not interested in.
+If you consistently dismiss genre-based suggestions (more than 80% dismissed with at least 5 suggestions), that category's multiplier is automatically reduced — down to a minimum of 0.25. This prevents the engine from repeatedly suggesting things you're not interested in.
 
 ## Series Completion Intelligence
 
@@ -65,9 +64,8 @@ The Discover page shows your suggestion feed, sorted by score. Each card shows:
 
 | Action | What It Does |
 |--------|-------------|
-| **Add** | Adds the book to your library as "wanted" and starts searching |
+| **Add** | Opens a popover that adds the book to your library as "wanted", with an optional **Search immediately** checkbox (defaults to your Quality > Search Immediately setting) |
 | **Dismiss** | Removes the suggestion. Feeds into the dismissal tracking system. |
-| **Snooze** | Hides the suggestion for the configured snooze period, then it reappears |
 
 ## Diversity Factor
 
@@ -79,7 +77,6 @@ To prevent filter bubbles — where you only see more of exactly what you alread
 2. **Pending** — visible in the Discover feed
 3. **Added** — you chose to add the book to your library
 4. **Dismissed** — you dismissed it (tracked for weight tuning)
-5. **Snoozed** — hidden until the snooze period expires, then returns to pending
-6. **Expired** — automatically removed after the expiry period
+5. **Expired** — automatically removed after the expiry period
 
-Suggestions are refreshed each cycle. If a suggestion already exists (matched by ASIN), its score is updated and the refresh timestamp is reset — it won't expire while the engine still considers it relevant.
+Suggestions are refreshed each cycle. If a suggestion already exists (matched by ASIN), its score is updated and its refresh timestamp is reset. Expiry, however, is measured from the original creation date — not the refresh timestamp — so a suggestion that keeps reappearing will still expire the configured number of days after it was first generated.

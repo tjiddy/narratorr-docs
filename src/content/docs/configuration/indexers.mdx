@@ -9,26 +9,27 @@ Indexers are the search sources Narratorr queries to find audiobook releases. Yo
 
 Go to **Settings > Indexers** to add, edit, or remove indexers.
 
-## Prowlarr Import (Recommended)
+## Prowlarr Sync (Recommended)
 
-If you already use [Prowlarr](https://prowlarr.com/) to manage your indexers, you can import them into Narratorr in one step instead of configuring each one manually.
+If you already use [Prowlarr](https://prowlarr.com/) to manage your indexers, you can let Prowlarr push them into Narratorr automatically instead of configuring each one manually. Narratorr exposes a Readarr-compatible API surface, so Prowlarr treats Narratorr as a Readarr application and syncs its Torznab/Newznab indexers in.
 
 <Steps>
 
-1. In **Settings > Indexers**, click the **Prowlarr Import** button
-2. Enter your Prowlarr URL (e.g., `http://prowlarr:9696`) and API key
-3. Click **Test** to verify the connection
-4. Narratorr shows a preview of what will change:
-   - **New** — indexers in Prowlarr that don't exist in Narratorr yet
-   - **Updated** — indexers that exist in both but have different settings
-   - **Unchanged** — indexers that already match
-   - **Removed** — indexers in Narratorr that no longer exist in Prowlarr
-5. Select the changes you want to apply and click **Import**
+1. In Prowlarr, go to **Settings > Apps** and add a new application of type **Readarr**
+2. Point the **Prowlarr Server** and **Readarr Server** fields at Narratorr's base URL (e.g., `http://narratorr:3000`)
+3. Paste Narratorr's **API key** (found in Narratorr under **Settings > Security**) into the **API Key** field
+4. Set the sync level and click **Test**, then **Save**
 
 </Steps>
 
+Once Prowlarr is set up, it pushes your Torznab and Newznab indexers into Narratorr on its own schedule. Synced indexers appear in **Settings > Indexers** with a **Managed by Prowlarr** badge and read-only API URL/Key fields.
+
+:::note
+Every indexer type below also has a **Route through proxy** toggle. When enabled, that indexer's search and test requests are sent through the global proxy configured in **Settings > General**. The proxy must be configured there first — the toggle has no effect until a proxy URL is set.
+:::
+
 :::tip
-Prowlarr import pulls Torznab and Newznab indexers. You can re-run the import anytime to sync changes from Prowlarr.
+Prowlarr syncs Torznab/Newznab indexers into Narratorr automatically once Narratorr is added as a Readarr application; re-syncs happen on Prowlarr's schedule rather than from a button in Narratorr. Narratorr's compat layer accepts (and ignores) Readarr echo-only fields like `categories` and `seedCriteria`, so the sync just works.
 :::
 
 ## AudioBookBay (ABB)
@@ -84,9 +85,13 @@ Narratorr has a dedicated adapter for [MyAnonamouse](https://www.myanonamouse.ne
 | Field | Description |
 |-------|-------------|
 | **MAM ID** | Your personal MAM session ID (found in your browser cookies after logging in) |
+| **Freeleech Wedge** | `Never` (default) or `Prefer`. When set to `Prefer`, Narratorr appends a server-side freeleech flag at download time so MAM spends a personal freeleech wedge on torrents that aren't already freeleech. |
+| **Base URL (optional)** | Only change if using a custom MAM mirror (defaults to `https://www.myanonamouse.net`). |
+
+Once you enter a valid MAM ID, Narratorr probes MAM and displays your account status — username, class, VIP status, available wedges, and exit IP — so you can confirm the session is working before saving.
 
 :::tip
-If you already have MAM configured in Prowlarr, importing via Prowlarr is the simplest setup. The dedicated MAM adapter is for users who want a direct connection without Prowlarr.
+If you already have MAM configured in Prowlarr, the simplest setup is to let Prowlarr manage MAM and sync it to Narratorr. The dedicated MAM adapter is for users who want a direct connection without Prowlarr.
 :::
 
 ## Newznab

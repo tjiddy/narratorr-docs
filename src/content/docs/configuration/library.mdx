@@ -7,15 +7,15 @@ description: Configure your audiobook library path and naming conventions.
 
 The library path is the root directory where Narratorr stores your organized audiobooks. Every imported book gets its own folder inside this directory, structured according to your folder format template.
 
-- **Docker default:** `/audiobooks` (mapped to a host directory via volume mount)
-- **Manual install default:** `./audiobooks` (relative to working directory)
-- **Override:** Set the `LIBRARY_PATH` [environment variable](/configuration/environment-variables/)
+The library path is configured in the Settings UI (**Settings > General > Library** section, the **Library Path** field) and stored in the database — there is no environment variable for it.
+
+- **Default:** `/audiobooks` for every install type. For Docker, mount your host audiobook directory to the container's `/audiobooks` volume and leave the path at its default. For manual installs, change it in Settings to a real directory on your host.
 
 The directory must exist and be writable by the Narratorr process.
 
 ## Folder Format
 
-The folder format template controls how audiobook directories are named inside your library. Configure it in **Settings > Library > Folder Format**.
+The folder format template controls how audiobook directories are named inside your library. Configure it in the **File Naming** section of **Settings > General**.
 
 **Default:** `{author}/{title}`
 
@@ -32,9 +32,11 @@ This creates a structure like:
 
 You can include series information, publication year, and other metadata using tokens. See [Folder Format Tokens](/guides/folder-format/) for the complete reference.
 
+The File Naming section also includes a **Separator** control (Space / Period / Underscore / Dash), a **Case** control (Default / lowercase / UPPERCASE / Title Case), and selectable naming presets. These apply to both generated folder and file names.
+
 ## File Format
 
-The file format template controls how individual audiobook files are renamed within their folder. Configure it in **Settings > Library > File Format**.
+The file format template controls how individual audiobook files are renamed within their folder. Configure it in the **File Naming** section of **Settings > General**.
 
 **Default:** `{author} - {title}`
 
@@ -51,8 +53,8 @@ When a download completes, Narratorr:
 
 ### Related Settings
 
-- **Delete After Import** (Settings > Import) — remove files from the download client after import
-- **Minimum Seed Time** (Settings > Import) — for torrents, wait until the minimum seed time before importing
-- **Processing** (Settings > Processing) — merge multi-file downloads, convert formats
+- **Delete After Import** (Settings > General > Import section) — remove files from the download client after import
+- **Minimum Seed Time** (Settings > General > Import section) — for torrents, wait until the minimum seed time before importing
+- **Processing** (Settings > Post Processing) — merge multi-file downloads, convert formats
 
 If downloads aren't importing, see [Troubleshooting > Downloads aren't importing](/troubleshooting/#downloads-arent-importing).

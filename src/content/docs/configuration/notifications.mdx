@@ -1,6 +1,6 @@
 ---
 title: Notifications
-description: Configure webhooks, Discord, and script notifications for download events.
+description: Configure webhook, Discord, email, Telegram, Slack, Pushover, ntfy, Gotify, and script notifications for download and health events.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
@@ -17,6 +17,7 @@ Configure notifications in **Settings > Notifications**.
 | **On Download Complete** | A download client reports a download finished |
 | **On Import** | An audiobook is successfully imported into the library |
 | **On Failure** | A download or import fails |
+| **On Health Issue** | A health check transitions state (e.g. healthy → warning/error) |
 
 ## Notifier Types
 
@@ -29,14 +30,16 @@ Sends an HTTP request to any URL when an event fires.
 | **Name** | Display name for this notifier |
 | **URL** | The endpoint to call |
 | **HTTP Method** | `POST` or `PUT` |
-| **Headers** | Optional custom headers (one per line, `Key: Value` format) |
+| **Headers** | Optional custom headers as a JSON object, e.g. `{"Authorization": "Bearer your-token"}` |
+| **Body Template** | Optional. Custom request body with `{token}` placeholders. Leave empty to send the full event payload as default JSON. |
 
-The request body is JSON containing event details. You can use template variables in the URL and headers:
+Template variables are substituted into the **Body Template** field (they are not applied to the URL or headers). Available tokens:
 
 | Variable | Description |
 |----------|-------------|
 | `{book.title}` | Book title |
 | `{book.author}` | Book author |
+| `{book.coverUrl}` | Cover art URL |
 | `{release.title}` | Release name from the indexer |
 | `{release.indexer}` | Indexer that provided the release |
 | `{release.size}` | Release file size |
@@ -46,6 +49,10 @@ The request body is JSON containing event details. You can use template variable
 | `{import.fileCount}` | Number of files imported |
 | `{error.message}` | Error message (failure events only) |
 | `{error.stage}` | Stage where the error occurred (failure events only) |
+| `{health.checkName}` | Name of the health check (health-issue events only) |
+| `{health.previousState}` | Previous health state (health-issue events only) |
+| `{health.currentState}` | Current health state (health-issue events only) |
+| `{health.message}` | Health check detail message (health-issue events only) |
 
 **Example uses:**
 - Trigger an Audiobookshelf library scan after import
@@ -54,7 +61,7 @@ The request body is JSON containing event details. You can use template variable
 - Hit any REST endpoint
 
 :::tip
-For endpoints that require authentication, add an `Authorization` header (e.g., `Bearer your-token-here`).
+For endpoints that require authentication, add an `Authorization` header in the Headers JSON object (e.g., `{"Authorization": "Bearer your-token-here"}`).
 :::
 
 ### Discord
@@ -71,6 +78,7 @@ Embeds are color-coded by event:
 - **Orange** — download complete
 - **Green** — import
 - **Red** — failure
+- **Dark orange** — health issue
 
 Cover art thumbnails are included when available.
 
@@ -85,16 +93,19 @@ Cover art thumbnails are included when available.
 
 Executes a local shell script or command on the Narratorr host when an event fires.
 
+In the UI this notifier type is labeled **Custom Script**.
+
 | Field | Description |
 |-------|-------------|
 | **Name** | Display name for this notifier |
-| **Command** | Path to the script or command to execute |
+| **Script Path** | Path to the script or command to execute |
+| **Timeout (seconds)** | How long the script may run before it's killed. Default: 30. Range: 1–300. |
 
 The script receives event data two ways:
 - **stdin** — full JSON payload
 - **Environment variables** — `NARRATORR_EVENT`, `NARRATORR_BOOK_TITLE`, `NARRATORR_BOOK_AUTHOR`, etc.
 
-Scripts have a **30-second timeout** — if the script doesn't exit within 30 seconds, it's killed.
+Scripts have a **configurable timeout** (default 30s, max 300s) — if the script doesn't exit within that window, it's killed.
 
 :::caution[Docker users]
 The script must exist **inside the container**. Either mount it as a volume:
@@ -104,6 +115,70 @@ volumes:
 ```
 Or bake it into a custom Docker image.
 :::
+
+### Email
+
+Sends an email via SMTP when an event fires.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this notifier |
+| **SMTP Host** | Hostname of your SMTP server |
+| **SMTP Port** | SMTP server port. Default: 587 |
+| **SMTP User** | Username for SMTP authentication |
+| **SMTP Password** | Password for SMTP authentication |
+| **Use TLS** | Whether to connect using TLS |
+| **From Address** | Sender email address |
+| **To Address** | Recipient email address |
+
+### Telegram
+
+Sends a message to a Telegram chat via a bot.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this notifier |
+| **Bot Token** | Token for your Telegram bot |
+| **Chat ID** | ID of the chat to send messages to |
+
+### Slack
+
+Posts a message to a Slack channel via an incoming webhook URL.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this notifier |
+| **Webhook URL** | Slack incoming webhook URL |
+
+### Pushover
+
+Sends a push notification through Pushover.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this notifier |
+| **API Token** | Pushover application API token |
+| **User Key** | Pushover user (or group) key |
+
+### ntfy
+
+Publishes a notification to an ntfy topic.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this notifier |
+| **Topic** | ntfy topic to publish to (required) |
+| **Server** | ntfy server URL (optional; defaults to the public ntfy.sh server) |
+
+### Gotify
+
+Sends a message to a self-hosted Gotify server.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name for this notifier |
+| **Server URL** | URL of your Gotify server |
+| **App Token** | Gotify application token |
 
 ## Managing Notifiers
 

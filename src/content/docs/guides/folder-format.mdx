@@ -3,7 +3,18 @@ title: Folder Format Tokens
 description: Complete reference for folder and file naming tokens and modifiers.
 ---
 
-Narratorr uses token-based templates to name audiobook folders and files in your library. Configure these in **Settings > Library**.
+Narratorr uses token-based templates to name audiobook folders and files in your library. Configure these in **Settings** under the **File Naming** section (it sits just below Library on the General settings page).
+
+## Presets
+
+If you'd rather not hand-write templates, the **File Naming** section includes a **Preset** dropdown with four built-in format pairs. Selecting one populates both the folder and file format fields; editing either field afterward switches the dropdown to **Custom**.
+
+| Preset | Folder Format | File Format |
+|--------|---------------|-------------|
+| Standard | `{author}/{title}` | `{author} - {title}` |
+| Audiobookshelf | `{author}/{series?/}{title}` | `{title}` |
+| Plex | `{author}/{series?/}{year? - }{title}` | `{title}{ - pt?trackNumber:00}` |
+| Last, First | `{authorLastFirst}/{titleSort}` | `{authorLastFirst} - {titleSort}` |
 
 ## Tokens
 
@@ -24,7 +35,7 @@ Narratorr uses token-based templates to name audiobook folders and files in your
 
 ## Modifiers
 
-Tokens support two modifiers that control formatting:
+Tokens support modifiers that control formatting:
 
 ### Zero-Pad: `{token:00}`
 
@@ -46,7 +57,27 @@ Appends `text` only if the token has a value. If the token is empty or missing, 
 | Expression | Has Value | No Value |
 |-----------|-----------|----------|
 | `{series? - }` | `The Sword of Truth - ` | *(nothing)* |
-| `{year? (}{year?)}` | See combined example below | *(nothing)* |
+
+To wrap a value in parentheses (e.g. a year), use the prefix + suffix form below — `{(?year?)}` — rather than two separate conditional tokens.
+
+### Conditional Prefix: `{text?token}`
+
+Prepends `text` only if the token has a value. As with the suffix form, the entire expression (including the prefix) is omitted when the token is empty or missing.
+
+| Expression | Has Value | No Value |
+|-----------|-----------|----------|
+| `{ - pt?trackNumber:00}` | ` - pt01` | *(nothing)* |
+| `{Book ?seriesPosition}` | `Book 1` | *(nothing)* |
+
+**Disambiguation:** if the text before `?` is a known token name, the expression is treated as a conditional *suffix* (`{token?text}`); otherwise it's treated as a conditional *prefix* (`{text?token}`).
+
+### Prefix + Suffix: `{pre?token?suf}`
+
+Wraps the token's value with both a prefix and a suffix, omitting the whole expression when the token has no value.
+
+| Expression | Has Value | No Value |
+|-----------|-----------|----------|
+| `{(?year?)}` | `(1994)` | *(nothing)* |
 
 ### Combined: `{token:00?text}`
 
@@ -103,6 +134,17 @@ Terry Goodkind - Wizards First Rule.m4b
 | File Format | `{author} - {title}` |
 
 ## Behavior Notes
+
+### Separator and Case
+
+Two settings in the **File Naming** section reshape every resolved token value before it's placed into the path:
+
+| Setting | Options | Default |
+|---------|---------|---------|
+| Separator | Space, Period, Underscore, Dash | Space |
+| Case | Default, lowercase, UPPERCASE, Title Case | Default |
+
+These apply to every non-numeric token value at render time, so they affect your folder and file names regardless of which template you use. For example, choosing the **Period** separator turns `Brandon Sanderson` into `Brandon.Sanderson` and collapses the comma in `Last, First` formats. The **Case** setting transforms casing in the same way — `lowercase`, `UPPERCASE`, or `Title Case` — while **Default** leaves the original casing untouched.
 
 ### Empty folder segments are skipped
 

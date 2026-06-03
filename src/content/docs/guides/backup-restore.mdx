@@ -32,11 +32,11 @@ Library audio files are **not** included in backups — only the database. Back 
 
 ## Manual Backup
 
-Trigger a backup manually from **System > Backups > Create Backup**. This creates an immediate backup regardless of the schedule.
+Trigger a backup manually with the **Create Backup** button under **Settings > System > Backup & Restore**. This creates an immediate backup regardless of the schedule.
 
 ## Downloading Backups
 
-From **System > Backups**, download any backup file to store off-site. This is recommended — if your config volume is lost, the backups stored inside it are lost too.
+From **Settings > System > Backup & Restore**, download any backup file to store off-site. This is recommended — if your config volume is lost, the backups stored inside it are lost too.
 
 ## Restoring from Backup
 
@@ -45,10 +45,17 @@ Restore is a two-step process to prevent accidental data loss:
 1. **Upload** — select a backup zip file. Narratorr extracts and validates it:
    - Checks it contains a valid SQLite database
    - Verifies the migration count is compatible (can't restore a backup from a newer version)
+   - Extraction is capped at **1 GB of uncompressed database** to guard against malformed or zip-bomb uploads. A legitimately larger database needs the cap raised.
 2. **Confirm** — review the validation results and confirm. The pending restore has a **5-minute window** — if you don't confirm in time, it expires and you need to re-upload.
 
 After confirmation, Narratorr stages the restore file and restarts. On startup, it swaps the backup database in and runs any pending migrations.
 
+You can also restore directly from any backup shown in the Backups list using its **Restore** (history) icon — it runs the same validate-then-confirm flow as upload, without needing to re-upload the file. Reserve the Upload path for restoring an off-site or downloaded backup.
+
 :::caution
 Restoring replaces your **entire database**. Everything added since the backup was created will be lost. Download a fresh backup before restoring if you want a safety net.
+:::
+
+:::caution[Pre-1.0 backups can't be restored]
+Backups created before the 1.0 migration flatten will fail validation with a "newer version" error and **cannot be restored into 1.0+**. The migration history was reset to a single baseline, so a pre-flatten backup reports more migrations than the current app and is rejected even though it is actually older. This is expected one-time breakage — migrate off pre-flatten versions before relying on backups.
 :::

@@ -5,7 +5,7 @@ description: Configure HTTP/HTTPS/SOCKS5 proxy for outbound requests.
 
 Narratorr can route outbound requests through a proxy. This is useful for privacy, accessing region-restricted metadata, or routing traffic through a VPN.
 
-Configure the global proxy in **Settings > Network**.
+Configure the global proxy in the **Network** section of **Settings > General**.
 
 ## Proxy URL
 
@@ -26,20 +26,25 @@ Credentials in the proxy URL are encrypted at rest in the database and redacted 
 
 ## What Gets Proxied
 
-The global proxy applies to:
-- Indexer search and test requests
-- Metadata provider lookups
-- Any outbound HTTP request from the server
+The global proxy applies **only** to indexer search and test requests, and only for indexers that have opted in via the per-indexer **Route through proxy** toggle (see below).
 
 It does **not** apply to:
+- Metadata provider lookups and cover-art downloads
 - Download client communication (these are typically on your local network)
 - SSE connections to the browser
 
-## Per-Indexer Proxy Override
+:::caution
+Setting a global Proxy URL alone has no effect. After saving it, you must enable **Route through proxy** on each indexer (**Settings > Indexers**) that should use it. The global URL stays inert until at least one indexer opts in.
+:::
 
-Individual indexers can override the global proxy. When configuring an indexer in **Settings > Indexers**, the **FlareSolverr URL** field routes that indexer's requests through a [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) instance instead of the global proxy.
+## Per-Indexer Transport Options
 
-FlareSolverr is a separate service you run alongside Narratorr. It handles Cloudflare-protected sites by running a headless browser to solve challenges.
+Each indexer has two independent transport settings in **Settings > Indexers**:
+
+- **Route through proxy** — sends that indexer's search and test requests through the global Network proxy configured above. This is the toggle that activates the global Proxy URL for an indexer.
+- **FlareSolverr URL** — routes that indexer's requests through a [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) instance to bypass Cloudflare. This is a Cloudflare-bypass mechanism, not an HTTP/SOCKS proxy.
+
+FlareSolverr is a separate service you run alongside Narratorr. It handles Cloudflare-protected sites by running a headless browser to solve challenges. If both **Route through proxy** and **FlareSolverr URL** are set on the same indexer, FlareSolverr takes precedence.
 
 :::note
 FlareSolverr is a per-indexer setting, not a global one. Only configure it on indexers that require Cloudflare bypass. Standard Torznab/Newznab indexers don't need it.
@@ -53,7 +58,7 @@ If Narratorr and your proxy run in Docker, use the container name as the proxy h
 services:
   narratorr:
     environment:
-      # No env var for proxy — configure in Settings > Network
+      # No env var for proxy — configure in Settings > General (Network section)
     networks:
       - media
 
