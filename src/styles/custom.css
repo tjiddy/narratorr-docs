@@ -334,18 +334,94 @@
   box-shadow: var(--nr-glow);
 }
 
-/* The final step (headphones) gets the amber treatment by default */
-.nr-pipeline-icon--final {
-  border-color: var(--nr-amber-700) !important;
-  color: var(--nr-amber-400) !important;
-  background: var(--nr-amber-950) !important;
-  box-shadow: var(--nr-glow);
+/* ============================================
+   Animated pipeline flow
+   A pulse travels Search → Grab → Process → Listen:
+   each icon illuminates in turn and each connector
+   energizes as it passes, then loops. The FLOW is the
+   hero — no single step owns the spotlight.
+   ============================================ */
+
+.nr-pipeline {
+  /* Sequential flow — exactly one element lit at a time, no overlap:
+     each icon holds lit for --nr-flow-icon-lit, each connector for --nr-flow-conn-lit,
+     then hands off to the next. Loop = 4 icons + 3 connectors. If you change the lit
+     times, also update the keyframe lit-bands below (icon = icon-lit ÷ dur ≈ 18.18%,
+     connector = conn-lit ÷ dur ≈ 9.09%). */
+  --nr-flow-icon-lit: 2s;
+  --nr-flow-conn-lit: 1s;
+  --nr-flow-dur: 11s; /* = 4 × icon-lit + 3 × conn-lit */
+  --nr-flow-border: var(--nr-amber-600);
+  --nr-flow-bg: var(--nr-amber-950);
+  --nr-flow-text: var(--nr-amber-400);
 }
 
-[data-theme='light'] .nr-pipeline-icon--final {
-  background: var(--nr-amber-100) !important;
-  border-color: var(--nr-amber-600) !important;
-  color: var(--nr-amber-700) !important;
+[data-theme='light'] .nr-pipeline {
+  --nr-flow-bg: var(--nr-amber-100);
+  --nr-flow-text: var(--nr-amber-700);
+}
+
+.nr-pipeline-icon {
+  animation: nr-flow-icon var(--nr-flow-dur) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.nr-pipeline-connector {
+  color: var(--sl-color-gray-4); /* drives the arrowhead via currentColor */
+  animation: nr-flow-connector var(--nr-flow-dur) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Cumulative start times — each element waits for every earlier slot to finish,
+   so exactly one is lit at any moment (icon 2s → connector 1s → icon 2s → …). */
+.nr-pipeline > :nth-child(1) .nr-pipeline-icon { animation-delay: 0s; }                                                             /* Search */
+.nr-pipeline > :nth-child(2)                   { animation-delay: var(--nr-flow-icon-lit); }                                        /* → */
+.nr-pipeline > :nth-child(3) .nr-pipeline-icon { animation-delay: calc(var(--nr-flow-icon-lit) + var(--nr-flow-conn-lit)); }        /* Grab */
+.nr-pipeline > :nth-child(4)                   { animation-delay: calc(2 * var(--nr-flow-icon-lit) + var(--nr-flow-conn-lit)); }     /* → */
+.nr-pipeline > :nth-child(5) .nr-pipeline-icon { animation-delay: calc(2 * var(--nr-flow-icon-lit) + 2 * var(--nr-flow-conn-lit)); } /* Process */
+.nr-pipeline > :nth-child(6)                   { animation-delay: calc(3 * var(--nr-flow-icon-lit) + 2 * var(--nr-flow-conn-lit)); } /* → */
+.nr-pipeline > :nth-child(7) .nr-pipeline-icon { animation-delay: calc(3 * var(--nr-flow-icon-lit) + 3 * var(--nr-flow-conn-lit)); } /* Listen */
+
+@keyframes nr-flow-icon {
+  0%, 18.18%, 100% {
+    border-color: var(--sl-color-gray-4);
+    background: var(--sl-color-black);
+    color: var(--sl-color-gray-3);
+    box-shadow: none;
+    transform: translateY(0);
+  }
+  /* lit band = 2s of the 11s loop (18.18%); snap on, hold bright, snap off */
+  1%, 17.18% {
+    border-color: var(--nr-flow-border);
+    background: var(--nr-flow-bg);
+    color: var(--nr-flow-text);
+    box-shadow: var(--nr-glow);
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes nr-flow-connector {
+  0%, 9.09%, 100% {
+    background: linear-gradient(90deg, var(--sl-color-gray-4), var(--sl-color-gray-5));
+    color: var(--sl-color-gray-4);
+    box-shadow: none;
+  }
+  /* lit band = 1s of the 11s loop (9.09%) */
+  1%, 8.09% {
+    background: linear-gradient(90deg, var(--nr-amber-500), var(--nr-amber-400));
+    color: var(--nr-amber-400);
+    box-shadow: 0 0 7px rgba(245, 158, 11, 0.45);
+  }
+}
+
+/* Accessibility: hold a static, softly-lit pipeline for reduced-motion users */
+@media (prefers-reduced-motion: reduce) {
+  .nr-pipeline-icon,
+  .nr-pipeline-connector {
+    animation: none;
+  }
+  .nr-pipeline-icon {
+    border-color: var(--nr-amber-700);
+    color: var(--nr-amber-500);
+  }
 }
 
 .nr-pipeline-label {
@@ -373,7 +449,7 @@
   top: 50%;
   transform: translateY(-50%);
   border: 3px solid transparent;
-  border-left-color: var(--sl-color-gray-4);
+  border-left-color: currentColor;
 }
 
 /* ============================================
