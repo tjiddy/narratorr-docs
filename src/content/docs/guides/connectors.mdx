@@ -1,0 +1,130 @@
+---
+title: Connectors
+description: Push a library refresh to Audiobookshelf or Plex when Narratorr imports a book.
+---
+
+Connectors tell your media server to rescan its library the moment Narratorr changes it — so a newly imported audiobook shows up in Audiobookshelf or Plex without you triggering a manual scan or waiting for the server's own periodic scan.
+
+A connector is a one-way push: Narratorr → media server. When a book lands in your library, Narratorr asks the configured server to refresh. It does not pull metadata, read playback state, or sync anything back.
+
+Go to **Settings > Connectors** to add, edit, test, or remove connectors. You can run more than one — every enabled connector is refreshed on each library change.
+
+## How It Works
+
+When a book changes in your library, Narratorr fires a refresh at every **enabled** connector. The refresh fires on:
+
+| Trigger | When |
+|---------|------|
+| **Import** | A book is imported via automatic grab or manual import (copy/move into the library) |
+| **Adopt** | A manual import in index-only (in-place) mode registers an existing folder |
+| **Rename** | A book's files or folder are renamed/moved by the rename operation |
+| **Restored** | A library rescan re-discovers a book that had gone missing |
+
+Refreshes are **best-effort and fire-and-forget**. They never block or fail an import — if a connector is unreachable, the import still completes and the failure is logged. The refresh queue lives in memory: bursts are coalesced and debounced (a 2-second quiet window, flushed sooner if a batch gets large), then sent with a single automatic retry on a transient error. A refresh that's still waiting in the debounce window when Narratorr is killed (a hard crash or `SIGKILL`) is dropped — the queue is intentionally not durable. This is safe: your media server reconciles on its own next change or scheduled scan, so a missed push is self-healing.
+
+:::note
+The queue is per-connector. A rapid burst of imports (e.g. a bulk library import) collapses into **one** refresh per connector rather than one per book — Audiobookshelf gets a single library scan, and Plex gets one targeted refresh per distinct folder.
+:::
+
+## Audiobookshelf
+
+Audiobookshelf refreshes by requesting a **full scan of one library**. Item paths are ignored — the connector always scans the whole configured library.
+
+Configure it at **Settings > Connectors > Add Connector**, choosing type **Audiobookshelf**.
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| **Name** | yes | A label for this connector |
+| **Server URL** | yes | The Audiobookshelf base URL, e.g. `http://audiobookshelf.local:13378`. Must be a valid `http(s)` URL with no query string or fragment. Private/LAN/Docker hostnames and IPs are fine. |
+| **API Key** | yes | An Audiobookshelf API token (sent as a `Bearer` token) |
+| **Library** | yes | The Audiobookshelf library to scan |
+
+### Finding Your API Key
+
+In Audiobookshelf, open **Settings > Users**, select your user, and copy the **API Token**. A token tied to an admin (or a user with library-scan permission) is required.
+
+### Selecting the Library
+
+Fill in the Server URL and API Key, then click **Fetch** next to the **Library** field. Narratorr queries Audiobookshelf for its libraries and turns the field into a dropdown. Pick the library that mirrors your Narratorr library. (If the fetch fails, you can type the library ID directly.)
+
+## Plex
+
+Plex refreshes are **path-scoped**: instead of rescanning the whole section, Narratorr asks Plex to refresh only the specific folders that changed. Each imported book resolves to a server-side path, the distinct paths are de-duplicated, and Narratorr issues one targeted section refresh per path.
+
+Configure it at **Settings > Connectors > Add Connector**, choosing type **Plex**.
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| **Name** | yes | A label for this connector |
+| **Server URL** | yes | The Plex base URL, e.g. `http://plex.local:32400`. Must be a valid `http(s)` URL with no query string or fragment. |
+| **Plex Token** | yes | A Plex authentication token (`X-Plex-Token`) |
+| **Library Section** | yes | The Plex library section to refresh |
+| **Path Mappings** | no | Map Narratorr library paths to the paths Plex sees (see below) |
+| **Fall back to full section refresh when a path cannot be derived** | no (default off) | See [Fallback Behavior](#fallback-behavior) |
+
+### Finding Your Plex Token
+
+Plex doesn't expose tokens in its UI directly. The common method: in Plex Web, open any library item, click the **⋯ menu > Get Info > View XML**, and copy the `X-Plex-Token` value from the URL in the new tab. Plex's official article "[Finding an authentication token / X-Plex-Token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)" covers other methods.
+
+### Selecting the Section
+
+Fill in the Server URL and Plex Token, then click **Fetch** next to **Library Section**. Narratorr lists your Plex library sections and turns the field into a dropdown. Pick the section that holds your audiobooks. (If the fetch fails, you can type the section key directly.)
+
+### Path Mappings
+
+Plex's targeted refresh works on the path *Plex* uses for the files. When Narratorr and Plex run in different containers (or on different hosts), they almost always see the same files under different paths — so Narratorr needs to translate its library path into the Plex-side path before asking for the refresh.
+
+Add one or more mappings in the **Path Mappings (local → Plex server)** section. Each row maps a Narratorr-side prefix to the Plex-side prefix:
+
+| Field | Description |
+|-------|-------------|
+| **Local Path** | The path prefix as Narratorr sees it, e.g. `/library/audiobooks` |
+| **Server Path** | The equivalent prefix as Plex sees it, e.g. `/data/audiobooks` |
+
+For each imported book, Narratorr finds the **longest matching** local prefix and rewrites it to the server prefix. Trailing slashes don't matter — they're normalized.
+
+**Example.** Both containers mount the same volume, but at different paths:
+
+```yaml
+services:
+  narratorr:
+    volumes:
+      - /data/media/audiobooks:/library/audiobooks
+  plex:
+    volumes:
+      - /data/media/audiobooks:/audiobooks
+```
+
+Mapping: `/library/audiobooks` → `/audiobooks`. A book Narratorr imports to `/library/audiobooks/Author/Title` is refreshed in Plex at `/audiobooks/Author/Title`.
+
+:::note
+This is a **separate** mapping from a download client's [Remote Path Mappings](/guides/remote-path-mappings/). Remote path mappings translate the download client's path *into* Narratorr's view; connector path mappings translate Narratorr's path *out* to the media server. They map opposite directions and are configured in different places.
+:::
+
+If a book's path **doesn't match any mapping**, the path is sent to Plex **unchanged** (passthrough). That works when Narratorr and Plex share the same paths, but against a server that sees a different layout the refresh hits a path Plex doesn't recognize and quietly does nothing. Narratorr logs these as "ineffective" refreshes — a sign you need a mapping. If you have no mappings configured at all, every refresh is passthrough.
+
+### Fallback Behavior
+
+A book occasionally can't be resolved to any usable server path (for example, an empty or whitespace library path). By default these items are **skipped** — Narratorr will not collapse an undeterminable path into a section-wide rescan, because on a large library a surprise full scan is expensive.
+
+Turn on **Fall back to full section refresh when a path cannot be derived** to instead rescan the whole section whenever an item has no derivable path. Leave it off (the default) unless you specifically want that safety net and accept the cost of a full scan.
+
+## Testing a Connector
+
+After filling in the fields, click **Test** before saving. The test verifies the server is reachable, the credential is valid, and the selected library/section actually exists on the server. Failures are reported against the specific field — a bad token highlights **Plex Token / API Key**, an unreachable host highlights **Server URL**, and a missing library highlights **Library / Library Section**.
+
+Editing a saved connector keeps its existing secret. The stored API key or token is shown masked as `********`; leave that in place to keep the saved value, or type a new secret to replace it. Secrets are encrypted at rest.
+
+## Enabling and Disabling
+
+New connectors are enabled by default. Editing a connector exposes an **Enabled** toggle — disable it to keep the configuration without sending refreshes. Only **enabled** connectors are refreshed on a library change.
+
+## Troubleshooting
+
+If new books don't appear in your media server after import:
+
+1. **Check the connector test.** Edit the connector and click **Test** — a failure here (auth, unreachable host, wrong library) is the most common cause.
+2. **Confirm the connector is enabled.** Disabled connectors are skipped.
+3. **Check the Narratorr logs** (set log level to `debug` in **Settings > General**). Each refresh logs whether it was dispatched, rejected by the server, or "ineffective." An "ineffective" Plex refresh means the path was sent unchanged or skipped — add or fix a path mapping.
+4. **Plex: verify the path mapping.** The Plex-side path Narratorr resolves to must be a path Plex actually serves. The debug logs show the resolved server paths for each refresh.
+5. **Remember the refresh is best-effort.** A refresh dropped during a crash won't retry, but your media server's own next scan picks the book up — you can also trigger a manual scan on the server as a one-off.

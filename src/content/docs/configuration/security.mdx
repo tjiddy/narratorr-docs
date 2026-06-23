@@ -28,10 +28,14 @@ HTTP Basic Authentication. Your browser prompts for credentials on every new ses
 An API key is auto-generated on first run. Use it for external integrations that can't go through browser-based auth.
 
 Pass the API key via:
-- **Header:** `X-Api-Key: your-api-key`
-- **Query parameter:** `?apikey=your-api-key`
+- **Header:** `X-Api-Key: your-api-key` (recommended)
+- **Query parameter:** `?apikey=your-api-key` (convenient for webhook URLs, but query strings may appear in server logs and referrer headers)
 
 Find your API key in **Settings > Security**.
+
+:::note
+The API key authenticates the **public API surface (`/api/v1/...`) only**. Presenting it on any other path — the internal routes the web UI uses (`/api/books`, `/api/settings`), or the real-time event streams — returns `401 Invalid API key`. Build external integrations against `/api/v1/`; for browser-based access, use Forms or Basic auth instead.
+:::
 
 ## Local Network Bypass
 

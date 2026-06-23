@@ -58,10 +58,10 @@ description: Common issues and solutions for Narratorr.
 
 **Symptoms:** Books are imported to the library folder but your media server doesn't show them.
 
-Narratorr places files into the library folder — it doesn't notify media servers directly. Each server handles detection differently:
+Narratorr places files into the library folder — it doesn't notify media servers directly. The simplest fix for Audiobookshelf or Plex is a **Connector**: add one in Settings > Connectors and Narratorr pushes a library scan to that server automatically whenever the library changes on import. If you'd rather not use a connector, each server can also detect new books on its own:
 
-- **Audiobookshelf** — auto-detects new files in watched folders. If not, trigger a library scan via the UI or set up a [webhook notification](/configuration/notifications/#webhook) to hit Audiobookshelf's scan API on import.
-- **Plex** — requires a library scan. Set up periodic scanning in Plex, or trigger it via webhook on import.
+- **Audiobookshelf** — add an Audiobookshelf connector (recommended), or rely on its auto-detection of new files in watched folders. If neither, trigger a library scan via the UI or set up a [webhook notification](/configuration/notifications/#webhook) to hit Audiobookshelf's scan API on import.
+- **Plex** — add a Plex connector (recommended) to scan on import, or set up periodic scanning in Plex, or trigger it via webhook.
 - **Other servers** — check if they support filesystem watching or have a scan API you can trigger via webhook.
 
 ## FlareSolverr not working

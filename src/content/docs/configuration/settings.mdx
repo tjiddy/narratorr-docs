@@ -3,136 +3,158 @@ title: Settings Overview
 description: All Narratorr settings sections and their fields.
 ---
 
-Narratorr's settings are organized into sections, accessible from **Settings** in the sidebar. This page gives an overview of each section. Individual topics have dedicated pages linked below.
+Narratorr's settings are accessible from **Settings** in the sidebar. The sidebar has these tabs: **General**, **Post Processing**, **Indexers**, **Download Clients**, **Search**, **Notifications**, **Connectors**, **Blacklist**, **Security**, **Import Lists**, and **System**. Each tab stacks one or more sections on a single scrolling page.
 
-## General
+This page documents the settings sections grouped by the tab they live under. Indexers, Download Clients, Notifications, Connectors, Blacklist, Security, and Import Lists have dedicated pages — linked at the bottom.
 
-| Setting | Description |
-|---------|-------------|
-| **Log Level** | Controls how verbose Narratorr's logs are. Options: `error`, `warn`, `info`, `debug`. Default: `info`. Turn up to `debug` when troubleshooting. |
-| **Event History Retention** | How many days to keep event history entries. Range: 1–365. Default: 90. |
-| **Series Cache Retention** | Days to keep cached series rows whose books have all been removed from the library before pruning. Range: 1–365. Default: 30. |
+## General tab
 
-## Metadata
+The General tab stacks the Library, "When a New Book Is Added", File Naming, Import, Network, Discovery, and Appearance sections.
 
-| Setting | Description |
-|---------|-------------|
-| **Audible Region** | Region used for metadata lookups (cover art, descriptions). Options: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. Default: `us`. Can also be set via the `AUDIBLE_REGION` [environment variable](/configuration/environment-variables/). |
-| **Hardcover API Key** | Optional key that populates the Series card on book pages with Hardcover-canonical members. Without a key, Series cards show only library books sharing the series name. |
-
-## Library
+### Library
 
 | Setting | Description |
 |---------|-------------|
 | **Library Path** | Root directory where Narratorr stores your audiobooks. In Docker, this maps to `/audiobooks`. |
+
+### When a New Book Is Added
+
+Defaults applied whenever a book is added (manually, via import lists, or via discovery).
+
+| Setting | Description |
+|---------|-------------|
+| **Search Immediately** | Trigger a search as soon as a book is added. Default: off. |
+
+### File Naming
+
+| Setting | Description |
+|---------|-------------|
+| **Preset** | Apply a naming preset (Standard, Audiobookshelf, Plex, Last-First) that fills in both formats below; choosing your own tokens shows as "Custom". |
+| **Separator** | Word separator applied to every rendered token. Options: Space, Period, Underscore, Dash. Default: Space. |
+| **Case** | Casing transform applied to rendered names. Options: Default, lowercase, UPPERCASE, Title Case. Default: Default (no change). |
 | **Folder Format** | Template for organizing audiobook folders. Uses tokens like `{author}/{title}`. See [Folder Format Tokens](/guides/folder-format/). |
 | **File Format** | Template for renaming audiobook files within folders. |
-| **Separator** | Word separator used in rendered folder and file names. Default: space. |
-| **Case** | Casing transform applied to rendered names. Default: no change. |
 
-## Search
+### Import
 
 | Setting | Description |
 |---------|-------------|
-| **Enabled** | Toggle automatic searching on/off. |
-| **Interval** | How often (in minutes) Narratorr searches for missing books. Range: 5–1440. Default: 360 (6 hours). |
-| **Protocol Preference** | Prefer `usenet`, `torrent`, or `none`. Default: none. |
-| **Search Priority** | Order results by `quality` (higher bitrate) or `accuracy` (match metadata narrator). Default: quality. |
+| **Delete After Import** | Remove the downloaded torrent from the download client after files are imported. |
+| **Minimum Seed Time** | For torrents: minimum time (in minutes) a torrent must seed before Narratorr removes it. Only applies when Delete After Import is on. Default: 60. |
+| **Minimum Seed Ratio** | Minimum upload ratio before removing a torrent. Only applies when Delete After Import is on. Default: 0 (disabled). |
+| **Redownload Failed** | Automatically search for and grab a different release when a download fails. Default: on. |
+| **Minimum Free Space** | Block imports when free disk space (in GB) is below this threshold. Default: 5. Set to 0 to disable. |
+
+### Network
+
+| Setting | Description |
+|---------|-------------|
+| **Proxy URL** | HTTP/HTTPS/SOCKS5 proxy for indexer search and test requests. A per-indexer "Route through proxy" toggle decides which indexers use it. See [Network & Proxy](/configuration/network/). |
+
+### Discovery
+
+| Setting | Description |
+|---------|-------------|
+| **Enable Discovery** | Toggle the recommendation engine on/off. Default: on. |
+| **Refresh Interval** | Refresh frequency in hours. Range: 1–168. Default: 24. |
+| **Max Suggestions Per Author** | Maximum suggestions per author. Range: 1–50. Default: 5. |
+| **Suggestion Expiry** | Days before unused suggestions expire. Default: 90. |
+
+See [Discovery & Recommendations](/guides/discovery/) for details.
+
+### Appearance
+
+| Setting | Description |
+|---------|-------------|
+| **Dark Mode** | Switch between the light and dark theme. Stored per-browser, not in the database. |
+
+## Search tab
+
+The Search tab stacks the Search (including the RSS Sync subsection), Metadata, Filtering, and Quality sections.
+
+### Search
+
+| Setting | Description |
+|---------|-------------|
+| **Enable Scheduled Search** | Toggle automatic searching on/off. Default: on. |
+| **Search Interval** | How often (in minutes) Narratorr searches for wanted books. Range: 5–1440. Default: 360 (6 hours). |
 | **Blacklist TTL** | How many days temporary blacklist entries last. Range: 1–365. Default: 7. See [Blacklist](/guides/blacklist/). |
+| **Search Priority** | Order results by Audio Quality (higher bitrate) or Narrator Accuracy (match the narrator from metadata). Default: Narrator Accuracy. |
+| **Protocol Preference** | Prefer `usenet`, `torrent`, or no preference. Affects result ordering but does not exclude results. Default: no preference. |
 
-## Quality
-
-Controls which releases are eligible to grab and how downloads are evaluated. See [Quality Gates](/guides/quality-gates/) for full details.
+The **RSS Sync** subsection (at the bottom of the Search section) controls the RSS poller:
 
 | Setting | Description |
 |---------|-------------|
-| **Grab Floor** | Minimum quality in MB/hour. Default: 0 (disabled). |
-| **Min Seeders** | Minimum seeders for torrent releases. Default: 1. |
-| **Min Download Size** | Minimum download size in MB. Filters tracker-test/preview/corrupt releases. Default: 0 (disabled). |
-| **Max Download Size** | Maximum download size in GB. Larger releases hidden. Default: 5. |
-| **Search Immediately** | Immediately search when adding a new book. Default: off. |
-| **Monitor for Upgrades** | Auto-enable upgrade monitoring for new books. Default: off. |
+| **Enable RSS Sync** | Toggle RSS sync on/off. Default: off. |
+| **RSS Interval** | Poll frequency in minutes. Range: 5–1440. Default: 30. |
 
-## Filtering
+See [RSS Feeds](/guides/rss-feeds/) for details.
+
+### Metadata
+
+| Setting | Description |
+|---------|-------------|
+| **Region** | Audible region used for metadata lookups (cover art, descriptions, narrators). Options: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. Default: `us`. |
+| **Hardcover API Key** | Optional key that populates the Series card on book pages with Hardcover-canonical members. Without a key, Series cards show only library books sharing the series name. Has a Test button to validate the key. |
+
+### Filtering
 
 Gates which search results survive before quality evaluation.
 
 | Setting | Description |
 |---------|-------------|
-| **Languages** | Multi-select of languages to allow. Results in unselected languages are excluded; results with no detected language pass through. Default: English. Deselect all to disable language filtering. |
-| **Minimum Duration** | Minimum runtime (in minutes) a release must have. Filters promo excerpts and TTS samples. Default: 0 (disabled). |
+| **Languages** | Multi-select of languages to allow. Results in unselected languages are excluded; results with no detected language always pass through. Default: English. Deselect all to disable language filtering. |
+| **Minimum Duration** | Minimum runtime (in minutes) a release must have. Filters promo excerpts, TTS knockoffs, and supplementary clips. Default: 0 (disabled). |
 | **Reject Words** | Comma-separated words that exclude a result if matched against its title, subtitle, author, narrator, or format type. Default: `Virtual Voice, Free Excerpt, Sample, Behind the Scenes, Abridged`. |
-| **Required Words** | Comma-separated words — at least one must appear for a result to be kept. |
+| **Required Words** | Comma-separated words — at least one must appear in a result's title for it to be kept. |
 
-## Network
+### Quality
 
-| Setting | Description |
-|---------|-------------|
-| **Proxy URL** | HTTP/HTTPS/SOCKS5 proxy for outbound requests. See [Network & Proxy](/configuration/network/). |
-
-## Import
+Controls the minimum bar a release must clear to be eligible to grab. See [Quality Gates](/guides/quality-gates/) for full details.
 
 | Setting | Description |
 |---------|-------------|
-| **Delete After Import** | Remove the downloaded files from the download client after successful import. |
-| **Minimum Seed Time** | For torrents: minimum time (in minutes) a torrent must seed before Narratorr will import it. Prevents premature removal from swarms. |
-| **Minimum Seed Ratio** | Minimum upload ratio before removing a torrent (applies when Delete After Import is on). Default: 0 (disabled). |
-| **Minimum Free Space** | Minimum free disk space (in GB) required before importing. Default: 5. Import is skipped if disk is below this threshold. |
-| **Redownload Failed** | Automatically search for a different release when a download fails. Default: on. |
+| **MB/hr Grab Minimum** | Minimum quality in MB/hour. Releases below this are hidden. Default: 0 (disabled). |
+| **Minimum Seeders** | Minimum seeders for torrent releases (does not affect Usenet). Default: 1. Set to 0 to disable. |
+| **Min Download Size** | Minimum download size in MB. Filters tracker-test uploads, single-track previews, and corrupt releases. Default: 0 (disabled). |
+| **Max Download Size** | Maximum download size in GB. Larger releases are hidden. Default: 5. Set to 0 to disable. |
 
-## Post Processing
+## Post Processing tab
 
-Audio processing requires ffmpeg. In Docker, ffmpeg is pre-installed. For manual installs, install ffmpeg and configure its path.
-
-| Setting | Description |
-|---------|-------------|
-| **Max Concurrent Jobs** | Maximum number of imports running simultaneously. Default: 2. |
-| **ffmpeg Path** | Path to the ffmpeg binary. Auto-detected in Docker. |
-| **Output Format** | Target format: `m4b` or `mp3`. |
-| **Keep Original Bitrate** | When enabled, the target bitrate setting is ignored and the source file's bitrate is retained. |
-| **Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when keep original bitrate is enabled. |
-| **Merge Behavior** | When to merge multi-file downloads: `always`, `multi-file-only`, or `never`. |
-| **Post-Processing Script** | Custom script to run after each import. See [Features Reference](/guides/features/#post-processing-script). |
-| **Script Timeout** | Maximum execution time in seconds. Default: 300. |
-
-Tagging settings are nested within Post Processing as the **Tag Embedding** toggle, rather than a separate top-level section:
+Audio processing requires ffmpeg. In Docker, ffmpeg is pre-installed and auto-detected. For manual installs, install ffmpeg and set its path. There is no master on/off toggle — processing runs only when an ffmpeg path is configured, and is invoked manually (per-book Merge or bulk Convert), not automatically at import time.
 
 | Setting | Description |
 |---------|-------------|
-| **Tag Embedding** | Toggle tag writing on/off. |
-| **Mode** | `populate_missing` (only fill empty fields) or `overwrite` (replace all). Default: populate_missing. |
-| **Embed Cover** | Embed cover art into audio files. Default: off. |
+| **ffmpeg Path** | Path to the ffmpeg binary. In Docker this is typically `/usr/bin/ffmpeg`. |
+| **Output Format** | Target format: `m4b` or `mp3`. Default: m4b. (MP3 does not support embedded chapter markers.) |
+| **Target Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when "Keep original" is on. |
+| **Keep original** | When on, the source file's bitrate is used instead of the target. Note: files are still re-encoded — this drops the bitrate cap, it is not a lossless copy. Default: on. |
+| **Merge Behavior** | When to merge multi-file downloads into a single chaptered file: `always`, `multi-file-only`, or `never`. Default: multi-file-only. |
+| **Max Concurrent Jobs** | Maximum number of manual merge jobs that can run simultaneously. Range: 1–8. Default: 1. |
+| **Post-Processing Script** | Absolute path to a custom script run after each successful import. See [Features Reference](/guides/features/#post-processing-script). |
+| **Script Timeout** | Maximum script execution time in seconds. Required when a script is set. Default: 300. |
+
+Tagging is nested within this same tab as the **Tag Embedding** toggle, rather than a separate top-level section:
+
+| Setting | Description |
+|---------|-------------|
+| **Tag Embedding** | Write book metadata into audio file tags on import. Requires ffmpeg. Default: off. |
+| **Tag Mode** | `populate_missing` (only fill empty fields) or `overwrite` (replace all). Default: populate_missing. |
+| **Embed Cover Art** | Embed cover art into audio files. Default: off. |
 
 See [Audio Processing](/guides/audio-processing/) and [Tagging & Cover Art](/guides/tagging/) for more detail.
 
-## RSS
+## System tab
 
-| Setting | Description |
-|---------|-------------|
-| **Enabled** | Toggle RSS sync on/off. Default: off. |
-| **Interval** | Poll frequency in minutes. Range: 5–1440. Default: 30. |
+The System tab holds the health dashboard, the Backup Schedule and Backup & Restore sections, system info, the Housekeeping and Logging sections, and scheduled tasks.
 
-See [RSS Feeds](/guides/rss-feeds/) for details.
-
-## Discovery
-
-| Setting | Description |
-|---------|-------------|
-| **Enabled** | Toggle discovery engine on/off. Default: on. |
-| **Interval** | Refresh frequency in hours. Range: 1–168. Default: 24. |
-| **Max Per Author** | Maximum suggestions per author. Range: 1–50. Default: 5. |
-| **Expiry Days** | Days before unused suggestions expire. Default: 90. |
-| **Snooze Days** | Days a snoozed suggestion stays hidden. Default: 30. |
-
-See [Discovery & Recommendations](/guides/discovery/) for details.
-
-## System
-
-| Setting | Description |
-|---------|-------------|
-| **Backup Interval** | Minutes between automatic backups. Range: 60–43,200. Default: 10,080 (weekly). |
-| **Backup Retention** | Number of backups to keep. Range: 1–100. Default: 7. |
-| **Dismissed Update Version** | Version string to suppress the update notification for. |
+| Setting | Section | Description |
+|---------|---------|-------------|
+| **Backup Interval** | Backup Schedule | Minutes between automatic backups. Range: 60–43,200. Default: 10,080 (weekly). |
+| **Backup Retention** | Backup Schedule | Number of backups to keep. Range: 1–100. Default: 7. |
+| **Event History Retention** | Housekeeping | How many days to keep event history entries before pruning. Range: 1–365. Default: 90. |
+| **Log Level** | Logging | How verbose Narratorr's logs are. Options: `error`, `warn`, `info`, `debug`, `trace`. Default: `info`. Turn up to `debug` when troubleshooting. |
 
 See [Backup & Restore](/guides/backup-restore/) for details.
 

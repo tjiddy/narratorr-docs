@@ -29,8 +29,8 @@ Sends an HTTP request to any URL when an event fires.
 |-------|-------------|
 | **Name** | Display name for this notifier |
 | **URL** | The endpoint to call |
-| **HTTP Method** | `POST` or `PUT` |
-| **Headers** | Optional custom headers as a JSON object, e.g. `{"Authorization": "Bearer your-token"}` |
+| **Method** | `POST` or `PUT` |
+| **Headers (JSON)** | Optional custom headers as a JSON object, e.g. `{"Authorization": "Bearer your-token"}` |
 | **Body Template** | Optional. Custom request body with `{token}` placeholders. Leave empty to send the full event payload as default JSON. |
 
 Template variables are substituted into the **Body Template** field (they are not applied to the URL or headers). Available tokens:
@@ -72,6 +72,7 @@ Sends rich embeds to a Discord channel via webhook URL.
 |-------|-------------|
 | **Name** | Display name for this notifier |
 | **Webhook URL** | Discord webhook URL |
+| **Include Cover Image** | Whether to attach the book's cover art as the embed thumbnail. Enabled by default. |
 
 Embeds are color-coded by event:
 - **Blue** — grab
@@ -125,9 +126,9 @@ Sends an email via SMTP when an event fires.
 | **Name** | Display name for this notifier |
 | **SMTP Host** | Hostname of your SMTP server |
 | **SMTP Port** | SMTP server port. Default: 587 |
-| **SMTP User** | Username for SMTP authentication |
-| **SMTP Password** | Password for SMTP authentication |
-| **Use TLS** | Whether to connect using TLS |
+| **Username** | Username for SMTP authentication |
+| **Password** | Password for SMTP authentication |
+| **Use TLS/SSL** | Whether to connect using TLS/SSL. Off by default. |
 | **From Address** | Sender email address |
 | **To Address** | Recipient email address |
 
@@ -168,7 +169,7 @@ Publishes a notification to an ntfy topic.
 |-------|-------------|
 | **Name** | Display name for this notifier |
 | **Topic** | ntfy topic to publish to (required) |
-| **Server** | ntfy server URL (optional; defaults to the public ntfy.sh server) |
+| **Server URL** | ntfy server URL (optional; defaults to the public ntfy.sh server) |
 
 ### Gotify
 

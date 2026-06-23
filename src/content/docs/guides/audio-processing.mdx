@@ -19,16 +19,16 @@ Configure audio processing in **Settings > Post Processing**.
 | Setting | Description |
 |---------|-------------|
 | **ffmpeg Path** | Path to the ffmpeg binary. Auto-detected in Docker. Processing runs only when this is set. |
-| **Output Format** | Target format: `m4b` (chapters) or `mp3`. _Currently inert — see note below; output is always M4B._ |
-| **Keep Original Bitrate** | Drop the target-bitrate cap and re-encode at (up to) the source bitrate instead of the target bitrate |
-| **Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when keep original bitrate is enabled. |
-| **Merge Behavior** | When to merge files. _Currently inert — see note below; merge always combines when 2+ files exist._ |
-| **Max Concurrent Jobs** | Maximum number of processing jobs that run at once. Default: 2. |
+| **Output Format** | Target format: `m4b` (chapters supported) or `mp3` (no chapter support). Default: `m4b`. Applies to both Merge and bulk Convert output. |
+| **Keep Original Bitrate** | Drop the target-bitrate cap and re-encode at (up to) the source bitrate instead of the target bitrate. Default: on. |
+| **Target Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when keep original bitrate is enabled. |
+| **Merge Behavior** | When the bulk **Convert** job merges multiple files: Always / Only when multiple files / Never. Default: "Only when multiple files". (The per-book **Merge** action always merges — see note below.) |
+| **Max Concurrent Jobs** | Maximum number of manual merge jobs that run at once (1–8). Default: 1. |
 | **Post-Processing Script** | Absolute path to a script run after each successful import. Receives `NARRATORR_BOOK_TITLE`, `NARRATORR_BOOK_AUTHOR`, `NARRATORR_IMPORT_PATH`, and `NARRATORR_IMPORT_FILE_COUNT` env vars. |
 | **Script Timeout** | Maximum seconds the post-processing script may run. Default: 300. Required when a script is set. |
 
-:::caution
-**Output Format** and **Merge Behavior** are stored and shown in the UI but are not currently applied. The output format is always M4B, and merging always combines when there are 2 or more audio files — selecting `mp3`, "Multi-file only", or "Never" has no effect on the actual output.
+:::note
+**Output Format** applies everywhere — selecting `mp3` re-encodes output to MP3 (no chapter markers). **Merge Behavior** governs the bulk **Convert** job only. The per-book **Merge** action always merges, regardless of this setting, because clicking "Merge" is an explicit instruction to combine the files.
 :::
 
 ### Tag Embedding
@@ -37,13 +37,15 @@ The same **Settings > Post Processing** page configures **Tag Embedding** — wr
 
 ## Merge Behavior
 
-| Option | Behavior |
-|--------|----------|
-| **Always** | Merge audiobook files into a single output file |
-| **Multi-file only** | Only merge when the download contains multiple audio files |
-| **Never** | Skip merging entirely — files are imported as-is |
+The **Merge Behavior** setting controls only the bulk **Convert** job. The per-book **Merge** action always merges (it ignores this setting).
 
-The Merge operation only runs on books that have 2 or more top-level audio files; single-file books are skipped/rejected. Many audiobook releases come as 20-50 individual chapter files — merging produces a single M4B with chapter markers that's easier to manage.
+| Option | Convert-job behavior |
+|--------|----------|
+| **Always merge** | Combine all audio files into a single output file with chapter markers |
+| **Only when multiple files** | Merge only when a book has more than one audio file; single-file books are just converted to the target format |
+| **Never (convert only)** | Never merge — each file is converted to the target format individually, no merging |
+
+The per-book **Merge** action only runs on books that have 2 or more top-level audio files; single-file books are skipped/rejected. Many audiobook releases come as 20-50 individual chapter files — merging produces a single file (M4B by default) with chapter markers that's easier to manage.
 
 ## How It Works
 
@@ -51,7 +53,7 @@ Import places the downloaded files into the library folder as-is — no processi
 
 1. From a book's page, start a **Merge** (requires 2+ audio files). The job is queued and runs under a concurrency limit, with progress reporting.
 2. Merge copies the files to a staging directory and runs ffmpeg to combine them in order.
-3. The output is encoded to M4B at the configured bitrate (unless keep original bitrate is on).
+3. The output is encoded to the configured Output Format (M4B by default) at the configured bitrate (unless keep original bitrate is on).
 4. Narratorr verifies the output, then swaps it into the book folder and deletes the originals.
 
 A bulk **Convert** job (from settings) applies the same processing across multiple books.

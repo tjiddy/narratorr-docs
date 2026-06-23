@@ -1,0 +1,387 @@
+---
+title: Public API (v1)
+description: The supported, versioned REST API for external integrations — authentication, endpoints, and response shapes.
+---
+
+Narratorr exposes a supported, versioned REST API under `/api/v1/`. It's the contract third-party tools build against — search providers, add books by ASIN, list your library, and queue downloads from your own scripts or companion apps.
+
+Narratorr is single-user and self-hosted: the authenticated user is the server operator, and there's exactly one library. The v1 API reflects that — pagination is offset/limit (not cursor), there's no per-key scoping or multi-tenant model, and the surface is deliberately small.
+
+:::caution
+Only `/api/v1/*` is public and stable. The internal routes the web UI uses (`/api/books`, `/api/settings`, the event streams) are **unversioned and unstable** — they change without notice and an API key won't authenticate against them. Build integrations against `/api/v1/` only.
+:::
+
+## Interactive docs
+
+Narratorr serves a live OpenAPI spec and browsable Swagger UI at:
+
+```
+http://your-narratorr-host:3000/api/v1/docs
+```
+
+The docs subtree is reachable **without an API key** so consumers can read the contract before authenticating. Every native v1 endpoint, request schema, and response shape is generated directly from the running server's code, so it's always in sync with your version. The `/json` and `/yaml` sub-paths serve the raw OpenAPI document.
+
+If you run behind a reverse proxy with a `URL_BASE`, the docs live under `{URL_BASE}/api/v1/docs`.
+
+## Authentication
+
+All v1 data endpoints require an API key. The key is auto-generated on first run — find it in **Settings > Security**.
+
+Pass it one of two ways:
+
+| Method | Example | Notes |
+|--------|---------|-------|
+| **Header** | `X-Api-Key: your-api-key` | Recommended. |
+| **Query parameter** | `?apikey=your-api-key` | Convenient for webhook URLs, but query strings can appear in server logs and referrer headers. |
+
+```bash
+curl -H "X-Api-Key: your-api-key" \
+  "http://your-narratorr-host:3000/api/v1/books"
+```
+
+:::note
+The API key authenticates the **`/api/v1/*` surface only**. Presenting it on any other path — the internal UI routes (`/api/books`, `/api/settings`) or the real-time event streams — returns `401`. For browser-based access, use Forms or Basic auth instead (see [Security & Auth](/configuration/security/)).
+:::
+
+A rejected key on a native v1 route returns the standard v1 error envelope:
+
+```json
+{ "error": { "code": "INVALID_API_KEY", "message": "Invalid API key" } }
+```
+
+:::tip
+If **Local Network Bypass** is enabled (see [Security & Auth](/configuration/security/)), requests from private IPs skip authentication entirely — including the v1 API. In that case the API key is optional from your LAN.
+:::
+
+## Conventions
+
+These hold across every native v1 endpoint.
+
+**List responses** are always an object, never a bare array:
+
+```json
+{ "data": [ /* ...items... */ ], "total": 42 }
+```
+
+`total` is the count of all matching rows, not just the page returned.
+
+**Pagination** is offset/limit. Both are optional query params on every list endpoint:
+
+| Param | Type | Bounds | Default |
+|-------|------|--------|---------|
+| `limit` | integer | `1`–`500` | Endpoint-specific (omit for the server default) |
+| `offset` | integer | `≥ 0` | `0` |
+
+**Identifiers** are opaque, non-enumerable strings — never database row IDs. Each entity type carries a prefix so the kind is obvious at a glance:
+
+| Entity | ID prefix | Example |
+|--------|-----------|---------|
+| Book | `bk_` | `bk_3Qp9z...` |
+| Author | `au_` | `au_7Kx2m...` |
+| Narrator | `nr_` | `nr_Lp4Vn...` |
+| Series | `sr_` | `sr_9Wd1c...` |
+| Download | `dl_` | `dl_2Hq8t...` |
+
+**Dates** are ISO 8601 strings (e.g. `2026-06-22T14:30:00.000Z`).
+
+**Unknown query params and body fields are rejected** with a `400`, not silently ignored — a misspelled filter is an error, so typos surface immediately.
+
+**Errors** use a stable envelope with a machine-readable `code` and a human-readable `message`:
+
+```json
+{ "error": { "code": "NOT_FOUND", "message": "Resource not found" } }
+```
+
+| Status | When |
+|--------|------|
+| `400` | Validation failure — bad/unknown query param or body field. |
+| `401` | Missing or invalid API key. |
+| `404` | The requested ID doesn't resolve to a row. |
+| `409` | Conflict — the resource already exists, or the book already has an active download. |
+| `422` | The request was well-formed but couldn't be fulfilled (e.g. ASIN didn't resolve). |
+| `429` | Upstream metadata provider rate-limited the lookup. A `Retry-After` header is included. |
+| `500` | Internal server error. |
+| `502` / `504` | A download client or metadata provider was unreachable or timed out. |
+
+:::note
+The v1 API is **not rate-limited** — the single-user self-hosted model makes it unnecessary. (Login endpoints are rate-limited; the API key surface is not.)
+:::
+
+## Metadata search
+
+Search audiobook metadata providers (Audible/Audnexus). These are **pre-library** results — they carry an `asin`, not a library `id`. Use this to find a book's ASIN before adding it.
+
+### `GET /api/v1/metadata/search`
+
+| Query param | Type | Required | Notes |
+|-------------|------|----------|-------|
+| `q` | string | Yes | Search query. Trimmed; 1–500 characters. |
+
+Each result book exposes:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `asin` | string? | Audible ASIN. Optional — not every provider record has one. |
+| `title` | string | |
+| `authors` | array | `{ name, asin? }` per author. |
+| `narrators` | array | `{ name }` per narrator. |
+| `series` | object? | `{ name, position? }` — present only when the result belongs to a series. |
+| `cover` | string? | Cover image URL. |
+| `publishedDate` | string? | |
+| `library` | object? | Cross-reference: present **only** if this ASIN is already in your library. `{ bookId, status }` — the `bk_` id and its current [status](#book-status-values). |
+
+The `library` field is the quick way to tell, in a search UI, which results you already own. A no-match search returns `{ "data": [], "total": 0 }` with a `200`, never a `404`.
+
+```bash
+curl -H "X-Api-Key: your-api-key" \
+  "http://your-narratorr-host:3000/api/v1/metadata/search?q=project+hail+mary"
+```
+
+```json
+{
+  "data": [
+    {
+      "asin": "B08G9PRS1K",
+      "title": "Project Hail Mary",
+      "authors": [{ "name": "Andy Weir", "asin": "B00G0WYW92" }],
+      "narrators": [{ "name": "Ray Porter" }],
+      "cover": "https://m.media-amazon.com/images/I/...jpg",
+      "publishedDate": "2021-05-04",
+      "library": { "bookId": "bk_3Qp9z...", "status": "imported" }
+    }
+  ],
+  "total": 1
+}
+```
+
+## Books
+
+Your library. List and inspect books, or add a new one by ASIN.
+
+### `GET /api/v1/books`
+
+List books in the library.
+
+| Query param | Type | Notes |
+|-------------|------|-------|
+| `limit`, `offset` | integer | Pagination (see [Conventions](#conventions)). |
+| `status` | string | Filter by exact [status](#book-status-values). Matches the canonical state exactly — `downloading` returns only books that are exactly `downloading`. |
+| `author` | string | Filter by author name. |
+| `series` | string | Filter by series name. |
+| `narrator` | string | Filter by narrator name. |
+| `sortField` | string | One of `createdAt`, `title`, `author`, `narrator`, `series`, `quality`, `size`, `format`. |
+| `sortDirection` | string | `asc` or `desc`. |
+
+### `GET /api/v1/books/:id`
+
+Fetch one book by its `bk_` id. Returns `404` if the id doesn't resolve.
+
+The book DTO (returned by both endpoints, and by the add-by-ASIN endpoint below):
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | string | Opaque `bk_` id. |
+| `title` | string | |
+| `authors` | array | `{ id, name }` per author — `id` is an `au_` reference. Ordered primary-first. |
+| `narrators` | array | `{ id, name }` per narrator — `id` is an `nr_` reference. |
+| `series` | object? | `{ name, position }` (position may be `null`), or `null` when the book has no series. |
+| `status` | string | Current [lifecycle status](#book-status-values). |
+
+```json
+{
+  "id": "bk_3Qp9z...",
+  "title": "Project Hail Mary",
+  "authors": [{ "id": "au_7Kx2m...", "name": "Andy Weir" }],
+  "narrators": [{ "id": "nr_Lp4Vn...", "name": "Ray Porter" }],
+  "series": null,
+  "status": "imported"
+}
+```
+
+#### Book status values
+
+| Status | Meaning |
+|--------|---------|
+| `wanted` | Tracked, awaiting a search. |
+| `searching` | Indexer search in progress. |
+| `downloading` | A release is downloading. |
+| `importing` | Download complete; importing into the library. |
+| `imported` | In the library. |
+| `missing` | Wanted but no release found. |
+| `failed` | A search, download, or import failed. |
+
+### `POST /api/v1/books`
+
+Add a book to the library by ASIN. The request body is **ASIN-only** — Narratorr hydrates the full record itself from the metadata provider; you don't supply title, author, or any other field.
+
+```json
+{ "asin": "B08G9PRS1K" }
+```
+
+On success, returns `201` with the newly created [book DTO](#get-apiv1booksid). If your General settings have **search immediately** enabled and the book lands in the `wanted` state, Narratorr fires a release search in the background (the response returns right away regardless).
+
+| Status | Body | Meaning |
+|--------|------|---------|
+| `201` | Book DTO | Created. |
+| `400` | Error envelope | Missing/blank `asin` or an extra body field. |
+| `409` | `{ error, existingId }` | A book with this ASIN is already in the library. `existingId` is its `bk_` id — a lost-response retry can re-resolve to it. |
+| `422` | Error envelope | `asin_not_resolved` (provider miss), `invalid_record` (incomplete provider record), or `edition_rejected` (the edition matches your reject-words filter). |
+| `429` | Error envelope | Provider rate-limited. Includes a `Retry-After` header. |
+| `502` | Error envelope | Provider lookup failed (transient). |
+
+```bash
+curl -X POST -H "X-Api-Key: your-api-key" -H "Content-Type: application/json" \
+  -d '{"asin":"B08G9PRS1K"}' \
+  "http://your-narratorr-host:3000/api/v1/books"
+```
+
+The `409` conflict body:
+
+```json
+{
+  "error": { "code": "book_exists", "message": "A book with this ASIN already exists" },
+  "existingId": "bk_3Qp9z..."
+}
+```
+
+## Authors, narrators & series
+
+Three read-only reference resources with an identical shape. Each is listable regardless of whether it's linked to a book in your library.
+
+| Endpoint | Returns |
+|----------|---------|
+| `GET /api/v1/authors` · `GET /api/v1/authors/:id` | Authors (`au_` ids). |
+| `GET /api/v1/narrators` · `GET /api/v1/narrators/:id` | Narrators (`nr_` ids). |
+| `GET /api/v1/series` · `GET /api/v1/series/:id` | Series (`sr_` ids). |
+
+List endpoints accept `limit` and `offset` only — no filter or sort params; the order is fixed. The DTO for all three is the same:
+
+| Field | Type |
+|-------|------|
+| `id` | string (entity-prefixed opaque id) |
+| `name` | string |
+
+```json
+{
+  "data": [
+    { "id": "au_7Kx2m...", "name": "Andy Weir" },
+    { "id": "au_5Tn8p...", "name": "Brandon Sanderson" }
+  ],
+  "total": 2
+}
+```
+
+## Downloads
+
+Read your download/import activity.
+
+### `GET /api/v1/downloads`
+
+List downloads. Accepts `limit` and `offset` only — no filters or sort.
+
+### `GET /api/v1/downloads/:id`
+
+Fetch one download by its `dl_` id.
+
+The download DTO:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | string | Opaque `dl_` id. |
+| `title` | string | Release title. |
+| `status` | string | Single derived display status — see below. |
+| `clientStatus` | string | Raw download-client state: `queued`, `downloading`, `paused`, `completed`, `failed`. |
+| `pipelineStage` | string | Narratorr's processing overlay: `idle`, `checking`, `pending_review`, `importing`, `imported`. |
+| `book` | object? | `{ id }` — the linked book's `bk_` id, or `null` if the download has no associated book. |
+| `protocol` | string | `torrent` or `usenet`. |
+| `progress` | number | Download progress (0–100). |
+| `addedAt` | string | ISO 8601. |
+| `completedAt` | string? | ISO 8601, or `null` if not yet complete. |
+| `errorMessage` | string? | Error detail, or `null`. |
+
+`status` is a single value derived from the `(clientStatus, pipelineStage)` pair so simple consumers don't have to combine the two axes themselves. Both raw axes are also exposed if you need them. Derived `status` is one of: `queued`, `downloading`, `paused`, `completed`, `checking`, `pending_review`, `importing`, `imported`, `failed`.
+
+```json
+{
+  "id": "dl_2Hq8t...",
+  "title": "Project Hail Mary [B08G9PRS1K]",
+  "status": "importing",
+  "clientStatus": "completed",
+  "pipelineStage": "importing",
+  "book": { "id": "bk_3Qp9z..." },
+  "protocol": "usenet",
+  "progress": 100,
+  "addedAt": "2026-06-22T14:30:00.000Z",
+  "completedAt": "2026-06-22T14:52:11.000Z",
+  "errorMessage": null
+}
+```
+
+## Searching for and grabbing releases
+
+The write path is two steps: **search** a book's indexers for candidate releases, then **grab** one. This mirrors how the web UI queues a download — it's not an entity POST.
+
+Each search result carries an opaque, signed `releaseId` token. You pass that exact token back to grab. The token encodes everything Narratorr needs to fetch the release (download URL, protocol, indexer) without exposing those raw fields in the response, and it's HMAC-signed server-side so it can't be forged.
+
+### `POST /api/v1/books/:id/search`
+
+Search indexers for releases of the given book (by its `bk_` id). No request body.
+
+Returns a list of release candidates:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `releaseId` | string | Opaque signed token — pass back to grab. |
+| `title` | string | Release title. |
+| `author` | string? | `null` if unknown. |
+| `narrator` | string? | `null` if unknown. |
+| `protocol` | string | `torrent` or `usenet`. |
+| `size` | number? | Bytes, or `null`. |
+| `seeders` | number? | Torrents only; `null` otherwise. |
+| `indexer` | string | Source indexer name. |
+| `isFreeleech` | boolean | |
+| `matchScore` | number? | Relevance score, or `null`. |
+
+| Status | Meaning |
+|--------|---------|
+| `200` | Results (possibly an empty list). |
+| `400` | The book's derived search query is empty after normalization. |
+| `404` | No book with that id. |
+
+### `POST /api/v1/books/:id/grab`
+
+Grab a release from the search results. The body carries the opaque `releaseId` from a search result:
+
+```json
+{ "releaseId": "eyJkb3dubG9hZFVybCI6..." }
+```
+
+Returns the resulting [download DTO](#get-apiv1downloadsid).
+
+This endpoint is **idempotent per release**: if you retry after a timeout (the response was lost but the grab succeeded), Narratorr recognizes the same release for the same book and returns the existing download instead of starting a second one.
+
+| Status | Body | Meaning |
+|--------|------|---------|
+| `201` | Download DTO | New download queued. |
+| `200` | Download DTO | A matching download already exists — returned instead of creating a duplicate (idempotent retry). |
+| `400` | Error envelope | Invalid or malformed `releaseId`. |
+| `401` | Error envelope | Download client authentication failed. |
+| `404` | Error envelope | No book with that id. |
+| `409` | Error envelope | The book already has an active download. |
+| `502` | Error envelope | Download client error. |
+| `504` | Error envelope | Download client request timed out. |
+
+```bash
+# 1. Find candidates
+curl -X POST -H "X-Api-Key: your-api-key" \
+  "http://your-narratorr-host:3000/api/v1/books/bk_3Qp9z.../search"
+
+# 2. Grab one using its releaseId
+curl -X POST -H "X-Api-Key: your-api-key" -H "Content-Type: application/json" \
+  -d '{"releaseId":"eyJkb3dubG9hZFVybCI6..."}' \
+  "http://your-narratorr-host:3000/api/v1/books/bk_3Qp9z.../grab"
+```
+
+## Versioning
+
+`/api/v1/` is the supported, stable contract. The internal `/api/*` routes are unversioned and may change at any time — don't build against them. When a breaking change to the public API is needed, it ships under a new version prefix (`/api/v2/`), leaving `/api/v1/` intact.

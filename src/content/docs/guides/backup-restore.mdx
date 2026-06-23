@@ -48,7 +48,7 @@ Restore is a two-step process to prevent accidental data loss:
    - Extraction is capped at **1 GB of uncompressed database** to guard against malformed or zip-bomb uploads. A legitimately larger database needs the cap raised.
 2. **Confirm** — review the validation results and confirm. The pending restore has a **5-minute window** — if you don't confirm in time, it expires and you need to re-upload.
 
-After confirmation, Narratorr stages the restore file and restarts. On startup, it swaps the backup database in and runs any pending migrations.
+After confirmation, Narratorr stages the restore file and the server process **exits** — it does not restart itself. Under a process supervisor (Docker, systemd) it comes back automatically; if you run Narratorr via `pnpm start` or `node` directly, you must restart it manually. On the next startup it swaps the staged database in and runs any pending migrations.
 
 You can also restore directly from any backup shown in the Backups list using its **Restore** (history) icon — it runs the same validate-then-confirm flow as upload, without needing to re-upload the file. Reserve the Upload path for restoring an off-site or downloaded backup.
 
