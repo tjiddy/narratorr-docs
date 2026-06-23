@@ -1,0 +1,94 @@
+---
+title: Using narratorr-request
+description: Search, request, and track audiobooks — plus the admin queue and user management.
+---
+
+## Searching
+
+The **Request** page is the catalog search. Type a title, author, or series and press **Search**
+(search runs on submit, not per-keystroke — each query hits narratorr's metadata provider).
+
+Each result card shows the cover, title, author(s), narrator(s), and series (with position). A
+badge tells you where the book stands, **most-actionable state wins**:
+
+| Badge | Meaning |
+|-------|---------|
+| **In library** | narratorr already has it imported — nothing to do. |
+| **On the way** | narratorr is already acquiring it (no duplicate request offered). |
+| *(your request's status)* | You've already requested it — shows Requested / Approved / Processing / Available / etc. |
+| **Request** button | Not owned and not yet requested — request it. |
+
+:::note
+If narratorr isn't connected yet, search shows a "not connected yet" notice — an admin needs to
+configure it in [Settings](/narratorr-request/configuration/). Searching very rapidly can hit a
+short per-user rate limit ("Too many searches — slow down a moment"); just wait a beat.
+:::
+
+## Requesting a book
+
+Click **Request** on a card. What happens next depends on your account:
+
+- **Normal users** → the request is created `pending` and waits for an admin to approve it.
+- **Admins and auto-approve users** → the request is auto-approved and handed to narratorr
+  immediately (no queue).
+
+A couple of rules:
+
+- **One active request per book.** Requesting a book you already have an active request for just
+  returns the existing one. You *can* re-request a book that was previously **denied** or
+  **failed**.
+- **Quota.** Non-admin users have a rolling-window request quota. If you're at the limit, the
+  request is rejected with a "quota reached" message.
+
+:::note[Quota isn't shown yet]
+There's currently no on-screen quota meter — you only find out you've hit the cap when a request
+is rejected. (A visible quota indicator is planned.)
+:::
+
+## My Requests
+
+The **My Requests** page lists everything you've requested and **updates live** (it polls every
+few seconds), so you'll see a request move through its stages without refreshing.
+
+| Status | Means |
+|--------|-------|
+| **Requested** | Awaiting admin review. |
+| **Approved** | Approved; handoff to narratorr pending/in-flight. |
+| **Processing** | narratorr is searching / downloading / importing it. |
+| **Available** | Imported into the library — done. |
+| **Denied** | An admin declined it (the reason, if given, is shown). |
+| **Failed** | The acquisition failed (the reason, if known, is shown). |
+
+The list is read-only — there's no cancel or retry. A denied or failed book can simply be
+requested again from search.
+
+## Admin: the Queue
+
+Admins get a **Queue** page (all users' requests, filterable by status, defaulting to the pending
+review queue). On a pending request:
+
+- **Approve** → the request is approved and handed to narratorr (added idempotently by ASIN), then
+  it moves to Processing.
+- **Deny** → optionally enter a reason (the requester sees it), then confirm.
+
+Approvals are claimed atomically, so two admins can't both act on the same request — the second
+gets a "not pending" notice.
+
+## Admin: Users
+
+The **Users** page manages accounts (sorted pending → active → rejected, with a banner counting
+who's awaiting approval). Per user you can:
+
+- **Approve / Reject** a pending account (reject is durable; you can re-approve later).
+- **Promote / Demote** admin — *disabled on your own row* (you can't change your own role or
+  status, so the last admin can't lock themselves out).
+- Set a **per-user request quota** (blank = the app default; admins are unlimited).
+- Toggle **auto-approve** — that user's requests skip the pending queue (they still count against
+  their quota). Admins always auto-approve.
+
+Each user's detail page also lists their full request history.
+
+:::tip[Admins are exempt]
+The admin role bypasses the approval queue, the request quota, and always auto-approves — handy
+for the owner account, and why the first user (the admin) can request immediately.
+:::
