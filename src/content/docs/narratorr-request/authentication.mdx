@@ -1,0 +1,110 @@
+---
+title: Authentication & Access
+description: Pluggable sign-in (local + OIDC), the approval queue, and admin bootstrap.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+narratorr-request separates **authentication** (who you are) from **authorization** (who may
+request). Authentication is pluggable; authorization is the in-app approval queue. Enable either
+or both sign-in methods.
+
+## Local email + password
+
+On by default (`LOCAL_AUTH=true`). Email is both the login and the contact address; passwords are
+hashed with scrypt and compared in constant time.
+
+- Users **Create account** / **Sign in** from the login page.
+- Passwords must be **8–200 characters**.
+- A wrong login returns a generic "Invalid email or password" (no account enumeration on the login
+  path).
+
+Set `LOCAL_AUTH=false` to run pure-OIDC.
+
+## OIDC providers
+
+List provider ids in `OIDC_PROVIDERS` (comma-separated), then configure each id `<ID>` with
+`OIDC_<UPPERCASE_ID>_*` variables. Each provider gets its own login button and a callback at
+**`/api/auth/oidc/<id>/callback`**. Plex (via a bridge), Authelia, Authentik, Keycloak, Pocket-ID,
+and Google are all just provider instances — there's no special-casing.
+
+```bash
+OIDC_PROVIDERS=plex,authelia
+
+# Plex, via a plex-oidc-bridge:
+OIDC_PLEX_ISSUER=https://plex-auth.example.com
+OIDC_PLEX_CLIENT_ID=narratorr-request
+OIDC_PLEX_CLIENT_SECRET=…
+OIDC_PLEX_REDIRECT_URI=https://requests.example.com/api/auth/oidc/plex/callback
+OIDC_PLEX_LABEL=Plex
+
+# Authelia (Authentik / Keycloak / Pocket-ID / Google are the same shape):
+OIDC_AUTHELIA_ISSUER=https://auth.example.com
+OIDC_AUTHELIA_CLIENT_ID=narratorr-request
+OIDC_AUTHELIA_CLIENT_SECRET=…
+OIDC_AUTHELIA_REDIRECT_URI=https://requests.example.com/api/auth/oidc/authelia/callback
+OIDC_AUTHELIA_LABEL=Authelia
+```
+
+Per provider, `ISSUER` / `CLIENT_ID` / `REDIRECT_URI` are **required**; `CLIENT_SECRET` is optional
+(omit it for a public PKCE client). `LABEL`, `SCOPE` (default `openid profile email`), and the
+`SUBJECT_CLAIM` / `USERNAME_CLAIM` / `EMAIL_CLAIM` overrides are optional. The flow uses **PKCE
+(S256)** with single-use state and nonce.
+
+:::note[No account linking]
+A user's identity is the **`(provider, subject)` pair**. The same person signing in via local
+password and via OIDC are **two separate accounts** — there is no linking. Pick a primary method
+per user.
+:::
+
+## The approval queue
+
+A valid sign-in is not enough to request — every account has a **status**:
+
+| Status | What the user can do |
+|--------|----------------------|
+| `pending` | Signed in, but sees an "Awaiting approval" screen — can't search or request. |
+| `active` | Full access: search, request, track. |
+| `rejected` | Sees an "Access not approved" screen. **Durable** — survives re-login. |
+
+A new user lands `pending`. An admin moves them to `active` (or `rejected`) on the **Users** page.
+The gate is enforced both client-side and server-side (a pending account's API calls get
+`403 ACCOUNT_PENDING`). Admins are always treated as active.
+
+## Bootstrapping the admin
+
+<Steps>
+
+1. **First-user-auto-admin (default).** The first real identity to sign in — in any method —
+   becomes **admin + active** automatically. (The `AUTH_BYPASS` dev-admin sentinel doesn't count,
+   so flipping a smoke instance to real auth still lets your first real user claim admin.)
+
+2. **Pin it instead with `BOOTSTRAP_ADMIN`.** Set `BOOTSTRAP_ADMIN=<provider>:<subjectOrUsername>`
+   (e.g. `authelia:todd` or `plex:myplexuser`) to make exactly that identity admin + active and
+   leave everyone else `pending`. This **disables** first-user-auto-admin.
+
+</Steps>
+
+:::caution[Public / open IdPs]
+If your IdP lets strangers self-register, **always set `BOOTSTRAP_ADMIN`** — otherwise the first
+stranger to sign in would grab admin. On an open IdP, pin by the stable **subject** rather than a
+user-changeable username (e.g. `google:10876…`).
+:::
+
+## Behind a reverse proxy
+
+Set `TRUSTED_PROXIES` (same variable name as narratorr) so the real client IP is used for the
+login rate-limiter — set it to `true` (trust all), a hop count, or a CIDR/IP list (e.g. your
+Docker proxy network). Auth endpoints are rate-limited by client IP **and** attempted email to
+slow brute-force attempts.
+
+:::note[Single instance]
+OIDC login state and the rate-limiter are held **in memory**, so running multiple replicas needs
+sticky sessions (a shared store is a future enhancement).
+:::
+
+## `AUTH_BYPASS` (development only)
+
+`AUTH_BYPASS=1` seeds a dev admin and makes every request that admin — no login at all. It's
+refused in production and on non-loopback binds (unless `ALLOW_INSECURE_AUTH_BYPASS=1`). Use it to
+kick the tires locally; never on anything reachable by others.

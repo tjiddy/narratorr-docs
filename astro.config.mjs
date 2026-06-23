@@ -64,6 +64,14 @@ export default defineConfig({
             { label: 'Audio Processing', slug: 'guides/audio-processing' },
           ],
         },
+        {
+          label: 'narratorr-request',
+          items: [
+            { label: 'Overview', slug: 'narratorr-request' },
+            { label: 'Installation', slug: 'narratorr-request/installation' },
+            { label: 'Authentication & Access', slug: 'narratorr-request/authentication' },
+          ],
+        },
         { label: 'Troubleshooting', slug: 'troubleshooting' },
       ],
     }),

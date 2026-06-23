@@ -1,0 +1,191 @@
+---
+title: Installation
+description: Run narratorr-request with Docker — compose, environment, volumes, first boot, and upgrades.
+---
+
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
+narratorr-request ships as a single container (the Fastify API serves the built SPA). The
+SQLite database lives on a volume and migrations apply automatically on boot.
+
+## Prerequisites
+
+- **Docker** (recommended) — or **Node.js 24.10+** with pnpm for a source install.
+- A **running narratorr instance** and an **API key** for it (narratorr → Settings → API). You
+  connect to it *after* first boot, in narratorr-request's Settings page.
+- A **session secret** for production (`openssl rand -hex 32`).
+
+## Docker (recommended)
+
+<Tabs>
+<TabItem label="Docker Compose">
+
+```yaml
+services:
+  narratorr-request:
+    image: narratorr/narratorr-request:latest
+    container_name: narratorr-request
+    ports:
+      - "3000:3000"
+    volumes:
+      - narratorr-request-data:/data
+    environment:
+      - NODE_ENV=production
+      - AUTH_BYPASS=0
+      # REQUIRED in production. Generate: openssl rand -hex 32
+      - SESSION_SECRET=change-me
+      # Pick at least one auth method (see Authentication):
+      - LOCAL_AUTH=true
+    restart: unless-stopped
+
+volumes:
+  narratorr-request-data:
+```
+
+```bash
+docker compose up -d
+```
+
+</TabItem>
+<TabItem label="Host bind mount">
+
+If you'd rather keep the database on a host path instead of a named volume:
+
+```yaml
+services:
+  narratorr-request:
+    image: narratorr/narratorr-request:latest
+    container_name: narratorr-request
+    ports:
+      - "3000:3000"
+    volumes:
+      - /path/on/host/narratorr-request:/data
+    environment:
+      - NODE_ENV=production
+      - AUTH_BYPASS=0
+      - SESSION_SECRET=change-me
+      - LOCAL_AUTH=true
+    restart: unless-stopped
+```
+
+:::caution[Bind-mount permissions]
+The container runs as the non-root **`node` user (uid 1000)**, so a host-mounted `/data`
+directory must be writable by uid 1000 — otherwise the app can't create the database and
+crash-loops with `SQLITE_CANTOPEN` ("unable to open database file"). Fix the host directory's
+owner **before** first boot:
+
+```bash
+sudo chown -R 1000:1000 /path/on/host/narratorr-request
+```
+
+A **named volume** (the other tab) avoids this entirely — the image initializes it with the
+correct owner.
+:::
+
+</TabItem>
+</Tabs>
+
+Open **http://localhost:3000**. The first user to sign in becomes the admin — continue to
+[First boot](#first-boot).
+
+### Zero-config smoke test
+
+To just confirm the image runs, start it with no configuration:
+
+```bash
+docker run --rm -p 3000:3000 narratorr/narratorr-request:latest
+```
+
+Out of the box it boots in **`AUTH_BYPASS` mode** (a seeded dev admin, every request is that
+admin) so you land straight in the UI. `GET /api/health` reports readiness (it pings the DB and
+reports `narratorrConfigured`), and the container ships a matching `HEALTHCHECK`. Configure
+narratorr in Settings to actually request anything.
+
+:::danger
+`AUTH_BYPASS` makes every request the admin. The app **refuses to start with it in production**
+and refuses to bind a non-loopback host unless you also set `ALLOW_INSECURE_AUTH_BYPASS=1`. Never
+expose an `AUTH_BYPASS` instance to anyone but yourself.
+:::
+
+## Environment variables
+
+The connector config (narratorr URL/key, notification channels) lives in the **Settings page**,
+not the environment — so the env surface is deliberately just server + auth + secrets.
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `SESSION_SECRET` | — | HMAC key for session cookies. **Required in production** (dev auto-generates an ephemeral one). |
+| `SETTINGS_KEY` | derived from `SESSION_SECRET` | Dedicated key for encrypting connector secrets at rest. Set a stable one to decouple them from session-secret rotation. |
+| `NODE_ENV` | `development` | `production` enables the prod posture (secure cookies, AUTH_BYPASS refusal, etc.). |
+| `AUTH_BYPASS` | `false` | Dev shortcut — seeds a dev admin, every request is that admin. Refused in prod / non-loopback. |
+| `ALLOW_INSECURE_AUTH_BYPASS` | `false` | Escape hatch to allow `AUTH_BYPASS` on a non-loopback bind. |
+| `LOCAL_AUTH` | `true` | Enable local email/password auth. |
+| `OIDC_PROVIDERS` | — | Comma-separated OIDC provider ids; each configured with `OIDC_<ID>_*`. See [Authentication](/narratorr-request/authentication/). |
+| `BOOTSTRAP_ADMIN` | — | Pin admin to `<provider>:<subjectOrUsername>`; disables first-user-auto-admin. |
+| `TRUSTED_PROXIES` | off | Trust `X-Forwarded-*` for the real client IP behind a reverse proxy (for rate-limit keying). |
+| `BIND_HOST` | `127.0.0.1` | Listen interface (the Docker image sets `0.0.0.0`). |
+| `DATABASE_PATH` | `/data/narratorr-request.db` (image) | libSQL database file. |
+| `PORT` | `3000` | HTTP port. |
+| `DEFAULT_REQUEST_QUOTA` | `10` | Default rolling-window request quota for new users (blank/0 = unlimited). |
+
+See [`.env.docker.example`](https://github.com/tjiddy/narratorr-request/blob/main/.env.docker.example)
+in the repo for a copy-paste production template, including the full OIDC variable pattern.
+
+## First boot
+
+<Steps>
+
+1. Open the app and **sign in** — create a local account, or use an OIDC provider if you
+   configured one.
+
+2. The **first user becomes admin + active** automatically. (Pin a specific identity instead with
+   `BOOTSTRAP_ADMIN` — see [Authentication](/narratorr-request/authentication/).)
+
+3. Go to **Settings** and enter your **narratorr connection** (host, port, API key) — use **Test**
+   to verify, then **Save**. (A full Configuration page is coming soon.)
+
+4. Optionally turn on a **notification channel** (ntfy / email / webhook) so you're pinged about
+   new requests and signups.
+
+</Steps>
+
+## Published images
+
+CI builds a multi-arch (amd64/arm64) image and pushes to **Docker Hub
+`narratorr/narratorr-request`** and **GHCR `ghcr.io/tjiddy/narratorr-request`**:
+
+- **Release** — a semver tag → `:latest`, `:X.Y.Z`, `:X.Y`.
+- **Bleeding edge** — every push to `develop` → `:develop`.
+
+## Upgrading
+
+Migrations are **forward-only** (no down-migrations) and apply automatically on boot. Before
+upgrading a populated instance, **snapshot the data volume / host directory** so you can roll
+back by restoring it and redeploying the previous image (an older image can't run against a newer
+schema).
+
+## Manual install (from source)
+
+<Steps>
+
+1. **Clone and install**
+
+   ```bash
+   git clone https://github.com/tjiddy/narratorr-request.git
+   cd narratorr-request
+   pnpm install
+   ```
+
+2. **Build**
+
+   ```bash
+   pnpm build
+   ```
+
+3. **Run** (set `SESSION_SECRET` + an auth method in the environment first)
+
+   ```bash
+   node dist/server/index.js
+   ```
+
+</Steps>
