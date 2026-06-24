@@ -46,6 +46,14 @@ OIDC_AUTHELIA_REDIRECT_URI=https://requests.example.com/api/auth/oidc/authelia/c
 OIDC_AUTHELIA_LABEL=Authelia
 ```
 
+:::tip[Using Plex as your IdP?]
+narratorr-requests speaks **standard OIDC**, not Plex's own auth — so to sign in with Plex you run a
+small **Plex → OIDC bridge** in front and point the `OIDC_PLEX_*` vars above at it. A community
+project that does exactly that is **[plex-oidc-bridge](https://github.com/blacktirion/plex-oidc-bridge)** —
+a lightweight OIDC provider that authenticates via Plex, shipped as a Docker image
+(`ghcr.io/blacktirion/plex-oidc-bridge`).
+:::
+
 Per provider, `ISSUER` / `CLIENT_ID` / `REDIRECT_URI` are **required**; `CLIENT_SECRET` is optional
 (omit it for a public PKCE client). `LABEL`, `SCOPE` (default `openid profile email`), and the
 `SUBJECT_CLAIM` / `USERNAME_CLAIM` / `EMAIL_CLAIM` overrides are optional. The flow uses **PKCE
