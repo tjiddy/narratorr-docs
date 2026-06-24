@@ -5,7 +5,7 @@ description: Pluggable sign-in (local + OIDC), the approval queue, and admin boo
 
 import { Steps } from '@astrojs/starlight/components';
 
-narratorr-request separates **authentication** (who you are) from **authorization** (who may
+narratorr-requests separates **authentication** (who you are) from **authorization** (who may
 request). Authentication is pluggable; authorization is the in-app approval queue. Enable either
 or both sign-in methods.
 
@@ -33,14 +33,14 @@ OIDC_PROVIDERS=plex,authelia
 
 # Plex, via a plex-oidc-bridge:
 OIDC_PLEX_ISSUER=https://plex-auth.example.com
-OIDC_PLEX_CLIENT_ID=narratorr-request
+OIDC_PLEX_CLIENT_ID=narratorr-requests
 OIDC_PLEX_CLIENT_SECRET=…
 OIDC_PLEX_REDIRECT_URI=https://requests.example.com/api/auth/oidc/plex/callback
 OIDC_PLEX_LABEL=Plex
 
 # Authelia (Authentik / Keycloak / Pocket-ID / Google are the same shape):
 OIDC_AUTHELIA_ISSUER=https://auth.example.com
-OIDC_AUTHELIA_CLIENT_ID=narratorr-request
+OIDC_AUTHELIA_CLIENT_ID=narratorr-requests
 OIDC_AUTHELIA_CLIENT_SECRET=…
 OIDC_AUTHELIA_REDIRECT_URI=https://requests.example.com/api/auth/oidc/authelia/callback
 OIDC_AUTHELIA_LABEL=Authelia

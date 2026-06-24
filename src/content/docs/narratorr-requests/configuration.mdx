@@ -1,0 +1,93 @@
+---
+title: Configuration
+description: Connect to narratorr and add notifiers in narratorr-requests's in-app Settings.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+Everything narratorr-requests connects to — narratorr itself and your notifiers — is configured on
+the admin **Settings** page, not in environment variables. The page has a left-nav with three
+sections: **General**, **Narratorr**, and **Notifications**. Secret values are **stored encrypted at
+rest** (the at-rest key comes from `SETTINGS_KEY`, or is derived from `SESSION_SECRET` when that's
+unset).
+
+The Narratorr connection and every notifier have a **Test** button that validates the **current form
+values without saving**, so you can confirm something works before committing it. Each section
+**saves on its own** — a **Save** button appears once you've changed a value.
+
+## General — Public URL
+
+Set this to where the app is reached (e.g. `https://requests.example.com`). It's used to
+**deep-link notifications** back to the request queue / users page, so an admin can jump straight
+from a ping to the thing that needs action. Leave it blank and notifications simply omit the link.
+
+## Narratorr connection
+
+The lifeline — required for search and requests to work. Two fields:
+
+| Field | Notes |
+|-------|-------|
+| **Server URL** | narratorr's full base URL, **including scheme and port** (e.g. `http://narratorr:3000`). Add a subpath if narratorr sits behind a reverse-proxy (e.g. `http://host:3000/lib`). |
+| **API key** | From **narratorr → Settings → API**. Masked once saved; leave blank to keep the current key. |
+
+<Steps>
+
+1. Enter the **Server URL** and **API key**.
+2. Click **Test** — it validates the current values (using the stored key if you left the API key
+   blank). Fix anything until it passes.
+3. **Save.**
+
+</Steps>
+
+:::note[Internal hosts are expected here]
+Unlike user-supplied cover URLs, the narratorr connection is trusted server-to-server admin
+config, so internal/private hosts (`narratorr`, `localhost`, `10.x`, …) are intentionally
+allowed — that's the normal sidecar setup.
+:::
+
+:::tip[Disconnecting]
+There's no enable/disable toggle — narratorr is either configured or not. To disconnect, **blank
+the Server URL and Save**; that clears the connection and its stored key.
+:::
+
+## Notifiers
+
+On the **Notifications** section you add **any number of notifiers** — there's no fixed set of
+channels. Click **Add Notifier**, pick a type, choose the events it fires on, and fill in its
+fields. Each saved notifier has its own **Test** (sends a real sample) and **Delete**. There's **no
+enable/disable toggle** — a notifier is live by existing; delete it to stop it.
+
+Every notifier is **admin-facing** — notifications go to you, the admin, never the requester — and
+fires only on the events you select:
+
+| Event | Fires when |
+|-------|-----------|
+| **New request** | A user requested a book and it's awaiting your review. |
+| **New signup** | A new user signed up and is awaiting approval. |
+| **Request failed** | An approved request couldn't be acquired — so you can step in (manual search, deny, refund). |
+
+### Types
+
+| Type | Key fields |
+|------|-----------|
+| **ntfy** | Server URL (defaults to `https://ntfy.sh`), topic, optional access token, optional priority. |
+| **Email (SMTP)** | Host / port, an implicit-TLS toggle (465 vs STARTTLS on 587), optional username / password, a From address, and the admin recipient. |
+| **Discord** | A Discord webhook URL (optionally include the cover image). |
+| **Slack** | A Slack incoming-webhook URL. |
+| **Telegram** | Bot token + chat ID. |
+| **Pushover** | App token + user key. |
+| **Gotify** | Server URL + app token. |
+| **Webhook** | A generic JSON `POST` to any URL — the escape hatch for anything not listed. |
+
+## How secrets are handled
+
+Every secret — the narratorr API key and all notifier credentials (tokens, keys, and capability
+webhook URLs) — is **never returned to the browser**. A saved secret shows masked
+(`•••••••• (unchanged)`, or a host-only hint for a capability URL). On save:
+
+- **Leave a secret blank** → the stored value is kept.
+- **Type a new value** → it replaces the stored one.
+- **Clear it** → it's removed.
+
+The **Test** button follows the same rule, so testing an existing connector with the secret left
+blank uses the stored secret — you don't have to re-enter it just to test.

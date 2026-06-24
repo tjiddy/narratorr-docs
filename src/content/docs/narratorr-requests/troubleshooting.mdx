@@ -1,12 +1,12 @@
 ---
 title: Troubleshooting
-description: Common narratorr-request first-run and operational issues, and how to fix them.
+description: Common narratorr-requests first-run and operational issues, and how to fix them.
 ---
 
 ## "Narratorr isn't connected yet" on search
 
 Search and requests need the narratorr connection. An **admin** must set the narratorr host, port,
-and API key on the [Settings page](/narratorr-request/configuration/) and **Test** it. Until then,
+and API key on the [Settings page](/narratorr-requests/configuration/) and **Test** it. Until then,
 search returns this notice.
 
 ## Container crash-loops with `SQLITE_CANTOPEN`
@@ -18,11 +18,11 @@ This happens with a **host bind mount** whose directory is owned by root. Fix th
 host and restart:
 
 ```bash
-sudo chown -R 1000:1000 /path/on/host/narratorr-request
-docker restart narratorr-request
+sudo chown -R 1000:1000 /path/on/host/narratorr-requests
+docker restart narratorr-requests
 ```
 
-A **named volume** avoids this entirely — see [Installation](/narratorr-request/installation/).
+A **named volume** avoids this entirely — see [Installation](/narratorr-requests/installation/).
 
 ## App refuses to start in production
 
@@ -42,7 +42,7 @@ turn `AUTH_BYPASS` off and configure a real auth method.
 
 That's the approval queue working as intended. An **admin** approves them on the **Users** page
 (→ `active`). The very first user becomes admin automatically; if no one is admin yet, see
-`BOOTSTRAP_ADMIN` in [Authentication](/narratorr-request/authentication/).
+`BOOTSTRAP_ADMIN` in [Authentication](/narratorr-requests/authentication/).
 
 ## OIDC sign-in fails ("Sign-in failed. Please try again.")
 
@@ -57,18 +57,18 @@ The provider callback didn't complete. Check that:
 ## A request is stuck on "Processing"
 
 `Processing` (`acquiring`) means narratorr is still working — searching, downloading, or
-importing. **The timing is narratorr's**, not narratorr-request's: a request stays in Processing
+importing. **The timing is narratorr's**, not narratorr-requests's: a request stays in Processing
 for as long as narratorr hasn't imported the book yet (it may legitimately sit "wanted" until
 narratorr's next scheduled search). Check the book's state in narratorr. If it ultimately fails,
 the request flips to **Failed** with a reason.
 
 ## Notifications aren't arriving
 
-- Confirm the channel is **enabled** and **Test** passes on the [Settings page](/narratorr-request/configuration/).
+- Confirm the notifier exists and its **Test** passes on the [Settings page](/narratorr-requests/configuration/).
 - Set the **Public URL** if you want the deep-link back to the queue in notifications.
-- Remember notifications are **admin-facing** — they fire on a new request and a new-user signup.
+- Remember notifications are **admin-facing** — they fire on a new request, a new-user signup, and a failed request.
   There is **no requester-facing "your book is available" notification**; requesters track status
-  on their [My Requests](/narratorr-request/using/#my-requests) page (which updates live).
+  on their [My Requests](/narratorr-requests/using/#my-requests) page (which updates live).
 
 ## Checking health
 

@@ -1,18 +1,18 @@
 ---
 title: Installation
-description: Run narratorr-request with Docker — compose, environment, volumes, first boot, and upgrades.
+description: Run narratorr-requests with Docker — compose, environment, volumes, first boot, and upgrades.
 ---
 
 import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 
-narratorr-request ships as a single container (the Fastify API serves the built SPA). The
+narratorr-requests ships as a single container (the Fastify API serves the built SPA). The
 SQLite database lives on a volume and migrations apply automatically on boot.
 
 ## Prerequisites
 
 - **Docker** (recommended) — or **Node.js 24.10+** with pnpm for a source install.
 - A **running narratorr instance** and an **API key** for it (narratorr → Settings → API). You
-  connect to it *after* first boot, in narratorr-request's Settings page.
+  connect to it *after* first boot, in narratorr-requests's Settings page.
 - A **session secret** for production (`openssl rand -hex 32`).
 
 ## Docker (recommended)
@@ -22,13 +22,13 @@ SQLite database lives on a volume and migrations apply automatically on boot.
 
 ```yaml
 services:
-  narratorr-request:
-    image: narratorr/narratorr-request:latest
-    container_name: narratorr-request
+  narratorr-requests:
+    image: narratorr/narratorr-requests:latest
+    container_name: narratorr-requests
     ports:
       - "3000:3000"
     volumes:
-      - narratorr-request-data:/data
+      - narratorr-requests-data:/data
     environment:
       - NODE_ENV=production
       - AUTH_BYPASS=0
@@ -39,7 +39,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  narratorr-request-data:
+  narratorr-requests-data:
 ```
 
 ```bash
@@ -53,13 +53,13 @@ If you'd rather keep the database on a host path instead of a named volume:
 
 ```yaml
 services:
-  narratorr-request:
-    image: narratorr/narratorr-request:latest
-    container_name: narratorr-request
+  narratorr-requests:
+    image: narratorr/narratorr-requests:latest
+    container_name: narratorr-requests
     ports:
       - "3000:3000"
     volumes:
-      - /path/on/host/narratorr-request:/data
+      - /path/on/host/narratorr-requests:/data
     environment:
       - NODE_ENV=production
       - AUTH_BYPASS=0
@@ -75,7 +75,7 @@ crash-loops with `SQLITE_CANTOPEN` ("unable to open database file"). Fix the hos
 owner **before** first boot:
 
 ```bash
-sudo chown -R 1000:1000 /path/on/host/narratorr-request
+sudo chown -R 1000:1000 /path/on/host/narratorr-requests
 ```
 
 A **named volume** (the other tab) avoids this entirely — the image initializes it with the
@@ -93,7 +93,7 @@ Open **http://localhost:3000**. The first user to sign in becomes the admin — 
 To just confirm the image runs, start it with no configuration:
 
 ```bash
-docker run --rm -p 3000:3000 narratorr/narratorr-request:latest
+docker run --rm -p 3000:3000 narratorr/narratorr-requests:latest
 ```
 
 Out of the box it boots in **`AUTH_BYPASS` mode** (a seeded dev admin, every request is that
@@ -109,7 +109,7 @@ expose an `AUTH_BYPASS` instance to anyone but yourself.
 
 ## Environment variables
 
-The connector config (narratorr URL/key, notification channels) lives in the **Settings page**,
+The connector config (narratorr URL/key and your notifiers) lives in the **Settings page**,
 not the environment — so the env surface is deliberately just server + auth + secrets.
 
 | Variable | Default | Purpose |
@@ -120,15 +120,15 @@ not the environment — so the env surface is deliberately just server + auth + 
 | `AUTH_BYPASS` | `false` | Dev shortcut — seeds a dev admin, every request is that admin. Refused in prod / non-loopback. |
 | `ALLOW_INSECURE_AUTH_BYPASS` | `false` | Escape hatch to allow `AUTH_BYPASS` on a non-loopback bind. |
 | `LOCAL_AUTH` | `true` | Enable local email/password auth. |
-| `OIDC_PROVIDERS` | — | Comma-separated OIDC provider ids; each configured with `OIDC_<ID>_*`. See [Authentication](/narratorr-request/authentication/). |
+| `OIDC_PROVIDERS` | — | Comma-separated OIDC provider ids; each configured with `OIDC_<ID>_*`. See [Authentication](/narratorr-requests/authentication/). |
 | `BOOTSTRAP_ADMIN` | — | Pin admin to `<provider>:<subjectOrUsername>`; disables first-user-auto-admin. |
 | `TRUSTED_PROXIES` | off | Trust `X-Forwarded-*` for the real client IP behind a reverse proxy (for rate-limit keying). |
 | `BIND_HOST` | `127.0.0.1` | Listen interface (the Docker image sets `0.0.0.0`). |
-| `DATABASE_PATH` | `/data/narratorr-request.db` (image) | libSQL database file. |
+| `DATABASE_PATH` | `/data/narratorr-requests.db` (image) | libSQL database file. |
 | `PORT` | `3000` | HTTP port. |
 | `DEFAULT_REQUEST_QUOTA` | `10` | Default rolling-window request quota for new users (blank/0 = unlimited). |
 
-See [`.env.docker.example`](https://github.com/tjiddy/narratorr-request/blob/main/.env.docker.example)
+See [`.env.docker.example`](https://github.com/tjiddy/narratorr-requests/blob/main/.env.docker.example)
 in the repo for a copy-paste production template, including the full OIDC variable pattern.
 
 ## First boot
@@ -139,20 +139,20 @@ in the repo for a copy-paste production template, including the full OIDC variab
    configured one.
 
 2. The **first user becomes admin + active** automatically. (Pin a specific identity instead with
-   `BOOTSTRAP_ADMIN` — see [Authentication](/narratorr-request/authentication/).)
+   `BOOTSTRAP_ADMIN` — see [Authentication](/narratorr-requests/authentication/).)
 
-3. Go to **Settings** and enter your **narratorr connection** (host, port, API key) — use **Test**
-   to verify, then **Save**. See [Configuration](/narratorr-request/configuration/).
+3. Go to **Settings** and enter your **narratorr connection** (Server URL + API key) — use **Test**
+   to verify, then **Save**. See [Configuration](/narratorr-requests/configuration/).
 
-4. Optionally turn on a **notification channel** (ntfy / email / webhook) so you're pinged about
-   new requests and signups.
+4. Optionally add a **notifier** (ntfy, email, Discord, Slack, Telegram, Pushover, Gotify, or a
+   generic webhook) so you're pinged about new requests, signups, and failed requests.
 
 </Steps>
 
 ## Published images
 
 CI builds a multi-arch (amd64/arm64) image and pushes to **Docker Hub
-`narratorr/narratorr-request`** and **GHCR `ghcr.io/tjiddy/narratorr-request`**:
+`narratorr/narratorr-requests`** and **GHCR `ghcr.io/tjiddy/narratorr-requests`**:
 
 - **Release** — a semver tag → `:latest`, `:X.Y.Z`, `:X.Y`.
 - **Bleeding edge** — every push to `develop` → `:develop`.
@@ -171,8 +171,8 @@ schema).
 1. **Clone and install**
 
    ```bash
-   git clone https://github.com/tjiddy/narratorr-request.git
-   cd narratorr-request
+   git clone https://github.com/tjiddy/narratorr-requests.git
+   cd narratorr-requests
    pnpm install
    ```
 

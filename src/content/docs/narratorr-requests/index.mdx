@@ -1,11 +1,11 @@
 ---
-title: narratorr-request
+title: narratorr-requests
 description: An Overseerr-style audiobook request app for narratorr — what it is, how it fits, and how the request flow works.
 ---
 
 import { Steps } from '@astrojs/starlight/components';
 
-**narratorr-request** is an [Overseerr](https://overseerr.dev/)-style request manager for
+**narratorr-requests** is an [Overseerr](https://overseerr.dev/)-style request manager for
 [narratorr](/). Family and friends sign in, search the audiobook catalog, and request titles;
 an admin approves them, and approved requests are handed to narratorr's `search → download →
 import` pipeline. It's the "let other people ask for audiobooks without giving them the keys to
@@ -13,15 +13,15 @@ narratorr" layer.
 
 ## How it fits with narratorr
 
-narratorr-request is a **plug-in sidecar**. It talks to narratorr **only** over narratorr's
+narratorr-requests is a **plug-in sidecar**. It talks to narratorr **only** over narratorr's
 public `/api/v1` HTTP surface, authenticated with a narratorr **API key**. There is no other
 coupling — no shared database, no shared filesystem.
 
-- The **API key is server-to-server only.** It lives in narratorr-request's backend and is
-  never sent to the browser. The browser only ever calls narratorr-request's own `/api/*`.
-- narratorr-request **polls** narratorr (`GET /books/:id`) to follow a request's progress — there
+- The **API key is server-to-server only.** It lives in narratorr-requests's backend and is
+  never sent to the browser. The browser only ever calls narratorr-requests's own `/api/*`.
+- narratorr-requests **polls** narratorr (`GET /books/:id`) to follow a request's progress — there
   is no webhook back from narratorr.
-- You configure the narratorr connection (and notification channels) in narratorr-request's own
+- You configure the narratorr connection (and your notifiers) in narratorr-requests's own
   in-app **Settings** page after first boot — not through environment variables.
 
 :::note
@@ -34,7 +34,7 @@ Until that connection is configured, search and requests return a "not connected
 <Steps>
 
 1. **Sign in.** A user signs in with local email/password or an OIDC provider (Plex bridge,
-   Authelia, etc. — see [Authentication](/narratorr-request/authentication/)).
+   Authelia, etc. — see [Authentication](/narratorr-requests/authentication/)).
 
 2. **Get approved.** New users land in an **approval queue** (`pending`) and can't search or
    request until an admin approves them. The first user to sign in becomes the admin.
@@ -46,20 +46,21 @@ Until that connection is configured, search and requests return a "not connected
 4. **Admin approves the request.** The admin approves (or denies) each request from the **Queue**.
    Admins and any users flagged *auto-approve* skip this step.
 
-5. **Handoff to narratorr.** On approval, narratorr-request adds the book to narratorr (idempotent
+5. **Handoff to narratorr.** On approval, narratorr-requests adds the book to narratorr (idempotent
    by ASIN) and the request enters `acquiring`.
 
-6. **Track to available.** narratorr-request polls narratorr and advances the request to
+6. **Track to available.** narratorr-requests polls narratorr and advances the request to
    `available` once narratorr finishes importing. The requester watches this **live on their My
    Requests page** — it updates every few seconds.
 
 </Steps>
 
 :::note[Notifications are admin-facing]
-narratorr-request notifies the **admin** of a new request to review and a new user awaiting
-approval (over ntfy / email / webhook). It does **not** notify the requester when their book
-becomes available — requesters follow status on their **My Requests** page. (A requester-facing
-"your book is ready" notification is planned for a future release.)
+narratorr-requests notifies the **admin** of a new request to review, a new user awaiting
+approval, and a request that failed to acquire — over any notifiers you add (ntfy, email, Discord,
+Slack, Telegram, Pushover, Gotify, or a generic webhook). It does **not** notify the requester when
+their book becomes available — requesters follow status on their **My Requests** page. (A
+requester-facing "your book is ready" notification is planned for a future release.)
 :::
 
 ## Authentication vs. authorization
@@ -75,10 +76,10 @@ So you can let anyone sign in via your IdP while still gatekeeping who actually 
 
 ## Next steps
 
-- [Installation](/narratorr-request/installation/) — run it with Docker.
-- [Authentication](/narratorr-request/authentication/) — local and OIDC sign-in, the approval
+- [Installation](/narratorr-requests/installation/) — run it with Docker.
+- [Authentication](/narratorr-requests/authentication/) — local and OIDC sign-in, the approval
   queue, and admin bootstrap.
-- [Configuration](/narratorr-request/configuration/) — connect to narratorr and set up
+- [Configuration](/narratorr-requests/configuration/) — connect to narratorr and set up
   notifications in the Settings page.
-- [Using narratorr-request](/narratorr-request/using/) — search, request, and manage the queue.
-- [Troubleshooting](/narratorr-request/troubleshooting/) — common first-run issues.
+- [Using narratorr-requests](/narratorr-requests/using/) — search, request, and manage the queue.
+- [Troubleshooting](/narratorr-requests/troubleshooting/) — common first-run issues.
