@@ -603,3 +603,14 @@
     font-size: 0.55rem;
   }
 }
+
+/* ============================================
+   Tables — keep first-column code on one line
+   Env-var / setting names (SESSION_SECRET, OIDC_PROVIDERS,
+   …) shouldn't orphan a trailing letter onto a second line;
+   nowrap lets the column size to fit them instead.
+   ============================================ */
+
+.sl-markdown-content table td:first-child code {
+  white-space: nowrap;
+}
