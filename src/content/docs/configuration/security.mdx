@@ -57,6 +57,8 @@ Login endpoints are rate-limited to prevent brute-force attacks:
 - Returns HTTP 429 with `Retry-After` header when exceeded
 - Window resets automatically
 
+Login isn't the only protected endpoint — rate limiting also covers initial setup (3 per 15 minutes), API-key regeneration (5 per hour), and filesystem browsing (60 per minute).
+
 ## How Credentials Are Stored
 
 ### User Passwords

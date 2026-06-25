@@ -24,7 +24,7 @@ Configure in **Settings > Search**, in the **RSS Sync** subsection.
 
 ## What Makes an Indexer RSS-Capable
 
-Not all indexers support RSS. Torznab and Newznab indexers typically do — they expose an RSS feed endpoint that returns recent uploads. The indexer needs to be configured and enabled in **Settings > Indexers**.
+Only Torznab and Newznab indexers are polled for RSS — they expose an RSS feed endpoint that returns recent uploads, and the indexer needs to be configured and enabled in **Settings > Indexers**. MyAnonamouse and AudioBookBay are never RSS-polled, regardless of how they're configured, so if those are your only indexers you get no RSS coverage — rely on scheduled search instead.
 
 ## RSS vs Scheduled Search
 

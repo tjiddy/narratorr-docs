@@ -92,11 +92,11 @@ Narratorr places files into the library folder — it doesn't notify media serve
 
 **Check:**
 - **Notifier is enabled** — check the toggle in Settings > Notifications
-- **Event is subscribed** — the notifier must be subscribed to the specific event (grab, download complete, import, failure)
+- **Event is subscribed** — the notifier must be subscribed to the specific event (grab, download complete, import, failure, health issue)
 - **Use the Test button** — sends a test payload to verify connectivity
 - **Webhook URL** — verify the URL is correct and reachable from the Narratorr host
 - **Discord webhook** — ensure the webhook hasn't been deleted in Discord server settings
-- **Script notifier** — ensure the script is executable, exists inside the Docker container (mount as volume), and completes within 30 seconds
+- **Script notifier** — ensure the script is executable, exists inside the Docker container (mount as volume), and completes within its configured timeout (default 30 seconds, configurable 1–300s)
 
 ## Can't log in / locked out
 

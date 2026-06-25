@@ -53,11 +53,11 @@ A rescan re-enriches existing books — updating metadata and file-based quality
 When you search for a book (manually, via scheduled search, or RSS), Narratorr:
 
 1. Queries all enabled indexers simultaneously
-2. Filters multi-part Usenet posts
-3. Removes blacklisted releases
-4. Applies [quality gate filters](/guides/quality-gates/#search-time-filters) (reject words, required words, min seeders, grab floor)
-5. Ranks results by quality (MB/hour), with protocol preference as a tiebreaker
-6. Deduplicates by info hash
+2. Removes blacklisted releases
+3. Enriches each result with language (detects and normalizes the release language)
+4. Filters multi-part Usenet posts
+5. Applies [quality gate filters](/guides/quality-gates/#search-time-filters) (reject/required words, format, min seeders, size floors/caps, grab floor) and partitions results by language
+6. Ranks results by quality (MB/hour), with protocol preference as a tiebreaker
 
 The scheduled search job runs on a configurable interval (Settings > Search > Interval, default: 360 minutes / 6 hours) and searches for all books with status `wanted`.
 

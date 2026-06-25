@@ -10,7 +10,7 @@ Environment variables configure server-level behavior. Most users don't need to 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `3000` | Server port |
-| `NODE_ENV` | `development` | Environment mode. Set to `production` in Docker. |
+| `NODE_ENV` | (unset) | Environment mode. Set to `production` in Docker; any other value (including unset) runs in development mode. |
 | `CORS_ORIGIN` | `http://localhost:5173` | Allowed CORS origin for the frontend. Only needed in development or split-origin deployments. |
 | `CONFIG_PATH` | `./config` | Directory for the database, settings, and other config files. |
 | `DATABASE_URL` | `./config/narratorr.db` | libSQL/SQLite database path. The `file:` prefix is optional and is stripped if present. |

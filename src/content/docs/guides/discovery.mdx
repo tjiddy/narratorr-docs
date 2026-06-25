@@ -79,4 +79,6 @@ To prevent filter bubbles — where you only see more of exactly what you alread
 4. **Dismissed** — you dismissed it (tracked for weight tuning)
 5. **Expired** — automatically removed after the expiry period
 
+Only `pending`, `added`, and `dismissed` are stored status values. "Generated" (the suggestion being created) and "Expired" (it being auto-removed) are lifecycle transitions, not statuses a suggestion sits in.
+
 Suggestions are refreshed each cycle. If a suggestion already exists (matched by ASIN), its score is updated and its refresh timestamp is reset. Expiry, however, is measured from the original creation date — not the refresh timestamp — so a suggestion that keeps reappearing will still expire the configured number of days after it was first generated.
