@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .astro/
+
+# internal audit worklists (never publish)
+DOCS-AUDIT-*.md
