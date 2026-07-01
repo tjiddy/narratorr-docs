@@ -6,20 +6,32 @@ description: Connect to narratorr and add notifiers in narratorr-requests's in-a
 import { Steps } from '@astrojs/starlight/components';
 
 Everything narratorr-requests connects to — narratorr itself and your notifiers — is configured on
-the admin **Settings** page, not in environment variables. The page has a left-nav with three
-sections: **General**, **Narratorr**, and **Notifications**. Secret values are **stored encrypted at
-rest** (the at-rest key comes from `SETTINGS_KEY`, or is derived from `SESSION_SECRET` when that's
-unset).
+the admin **Settings** page, not in environment variables. The page has a left-nav with four
+sections: **General**, **Narratorr**, **Notifications**, and **System**. Secret values are **stored
+encrypted at rest** (the at-rest key comes from `SETTINGS_KEY`, or is derived from `SESSION_SECRET`
+when that's unset).
 
 The Narratorr connection and every notifier have a **Test** button that validates the **current form
 values without saving**, so you can confirm something works before committing it. Each section
 **saves on its own** — a **Save** button appears once you've changed a value.
 
-## General — Public URL
+## General — Public URL & default quota
 
-Set this to where the app is reached (e.g. `https://requests.example.com`). It's used to
-**deep-link notifications** back to the request queue / users page, so an admin can jump straight
+Set the **Public URL** to where the app is reached (e.g. `https://requests.example.com`). It's used
+to **deep-link notifications** back to the request queue / users page, so an admin can jump straight
 from a ping to the thing that needs action. Leave it blank and notifications simply omit the link.
+
+This section also sets the **app-wide default request quota** — the rolling-window cap that applies
+to every user who hasn't been given a per-user override (see
+[Managing quotas](/narratorr-requests/using/#admin-users)). Two modes:
+
+| Mode | Effect |
+|------|--------|
+| **No default cap** | Unlimited requests for everyone without a per-user override. |
+| **Limit requests** | A positive cap over a friendly window — **day / week / month**, mapped to a fixed 1 / 7 / 30-day rolling window (not a calendar period). |
+
+There's no `DEFAULT_REQUEST_QUOTA` environment variable — this lives entirely in Settings so it can
+change without a redeploy.
 
 ## Narratorr connection
 
@@ -91,3 +103,16 @@ webhook URLs) — is **never returned to the browser**. A saved secret shows mas
 
 The **Test** button follows the same rule, so testing an existing connector with the secret left
 blank uses the stored secret — you don't have to re-enter it just to test.
+
+## System Information
+
+A **read-only** section for a quick server/environment snapshot — no configuration here:
+
+| Field | Shows |
+|-------|-------|
+| **Version** | The running narratorr-requests version. |
+| **Built** | The image build timestamp. |
+| **Node.js** | The Node.js runtime version. |
+| **OS** | The host/container OS. |
+| **Database Size** | The SQLite database file size. |
+| **narratorr** | The connected narratorr's version + reachability, sourced from narratorr's own `/api/v1/system` — at a glance, without leaving Settings. |
