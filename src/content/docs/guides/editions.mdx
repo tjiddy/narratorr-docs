@@ -1,0 +1,63 @@
+---
+title: Multiple Editions
+description: Keep more than one recording of the same book — full-cast and unabridged, or different narrators — side by side.
+---
+
+One book can have more than one *recording*: an unabridged single-narrator reading, a full-cast dramatization, a different narrator's performance. Narratorr lets you keep more than one of them in your library at the same time — while still recognizing when a recording you already own turns up again (even under a different Audible ASIN) so it isn't imported twice or written over.
+
+Two rules govern everything on this page:
+
+- **Never silently overwrite** — a different recording is never written on top of one you already have.
+- **Never silently skip** — a recording narratorr can't confidently classify is held for you to decide, not dropped.
+
+## Same recording, or a different one?
+
+When a book arrives (via download, manual import, or an import list) and you already own that title, narratorr decides whether it's the *same* recording you have or a *different* one:
+
+| Signal | How it's used |
+|--------|---------------|
+| ASIN | An exact ASIN match (case-insensitive) is the same recording. A *different* ASIN does **not** automatically mean a different recording — the same reading is often sold under several ASINs, so narratorr falls through to the narrator and duration signals. |
+| Narrators | The primary discriminator. A `Full Cast` and a `Jim Dale` reading are different recordings; the same narrator set points at the same recording. |
+| Duration | A corroborator only. Two copies of the same reading run about the same length; a difference beyond ~15% downgrades an otherwise-equal match to *review* (the abridged-vs-unabridged case). |
+| Production type | Full cast, dramatized, and the like. When duration can't corroborate, a conflicting production form is held for review rather than merged. |
+
+The outcome is one of three:
+
+- **Same recording** — recognized as already owned. Re-importing the exact files you have is a no-op; re-downloading the same recording replaces the existing audio in place, with no duplicate folder.
+- **Different recording** — kept as a new edition alongside what you own (below).
+- **Review** — narratorr isn't sure, so it holds the book for you to decide rather than guessing.
+
+## Keeping both editions
+
+When a *different* recording of a book you own is imported, narratorr writes it into its own folder instead of colliding with the existing one, appending an **edition label** to the book folder so the two live side by side:
+
+```
+Brandon Sanderson/The Stormlight Archive/01 - The Way of Kings
+Brandon Sanderson/The Stormlight Archive/01 - The Way of Kings (Full Cast)
+```
+
+The label is derived from stable metadata — the recording's primary narrator name, or its production form (`Full Cast`, `Dramatized`, `GraphicAudio`, `Abridged`, `Unabridged`) when there's no distinguishing narrator. It's deterministic: re-scanning the same recording produces the same folder, never a `(2)` counter.
+
+### Automatic vs. explicit
+
+This is the important part: **you don't have to change your naming template for keep-both to work.** When a second edition needs its own folder, narratorr automatically appends ` (<edition>)` to the book folder — even if your folder template contains no edition token.
+
+If you'd rather control *where* the label appears, add the `{edition}` token to your folder format. When the token is present, narratorr renders the label in that position and suppresses the automatic suffix, so it never appears twice. The token renders nothing for a book that has only one recording, so it's safe to add across your whole library:
+
+```
+{author}/{series}/{seriesPosition:00? - }{title} ({edition})
+```
+
+See [Folder Format Tokens](/guides/folder-format/) for the token and its exact behavior.
+
+## Held for review
+
+Some collisions can't be classified confidently — narratorr can't tell whether an incoming recording matches one you own, there's no stable label to disambiguate it, or two library rows already claim the same folder. In every such case narratorr **holds the recording for review** rather than overwriting or skipping it:
+
+- **Manual & Library Import** — held books surface in a review panel after the import runs, where you can re-confirm them (or force the import) once you've decided. You aren't navigated away; the held items stay in front of you.
+- **Import lists** — a held item is recorded as a `recording_review_skipped` event on the [Activity page](/guides/features/#activity-page) and counted in the run summary, so a held-for-review book is observable rather than silent.
+- **Forced import** — forcing bypasses the *bibliographic* duplicate check, but never the on-disk never-overwrite rule. A forced import that would still collide is refused with a distinct reason instead of overwriting.
+
+## Production type
+
+Each book records a **production type** — `unabridged`, `abridged`, `full_cast`, `dramatized`, `graphic_audio`, or `unknown` — derived from provider metadata at import. It feeds the same/different-recording decision (the review veto above) and supplies the fallback edition label when a recording has no distinguishing narrator.

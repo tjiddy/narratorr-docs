@@ -30,6 +30,7 @@ If you'd rather not hand-write templates, the **File Naming** section includes a
 | `{year}` | Publication year | `1994` |
 | `{narrator}` | Narrator name | `Sam Tsoukalas` |
 | `{narratorLastFirst}` | Narrator as Last, First | `Tsoukalas, Sam` |
+| `{edition}` | Edition label when a book has more than one recording — see [Multiple Editions](/guides/editions/) | `Full Cast` |
 | `{trackNumber}` | Chapter/track number (file format only) | `01` |
 | `{trackTotal}` | Total tracks (file format only) | `47` |
 | `{partName}` | Part or volume name (file format only) | `Book 1` |
@@ -163,6 +164,23 @@ This means you don't need any special conditional syntax to handle missing value
 ### Character sanitization
 
 Illegal filesystem characters (`< > : " / \ | ? *` and control characters) are stripped from each path segment. Leading/trailing whitespace is trimmed, and consecutive spaces are collapsed to a single space. For example, if a colon is stripped from `Author: Name`, the resulting double space is automatically collapsed to `Author Name`.
+
+### The `{edition}` token and multiple editions
+
+When you keep more than one recording of a book (a full-cast and an unabridged, say), narratorr distinguishes them with an **edition label** on the book folder. This happens **automatically** — when a second recording needs its own folder, ` (<edition>)` is appended to the book folder even if your template contains no `{edition}` token:
+
+```
+Brandon Sanderson/The Stormlight Archive/01 - The Way of Kings
+Brandon Sanderson/The Stormlight Archive/01 - The Way of Kings (Full Cast)
+```
+
+Add the `{edition}` token to your **folder** format to control *where* the label appears instead of letting it auto-append. When the token is present, narratorr renders the label in place and suppresses the automatic suffix (so it never appears twice). The token renders nothing for a book with a single recording, so it's safe to add library-wide:
+
+```
+{author}/{series}/{seriesPosition:00? - }{title} ({edition})
+```
+
+Unlike other tokens, the folder `{edition}` label is written **verbatim** — the Separator and Case settings never reshape it, so it stays a stable on-disk identifier. The token is available in **file** formats too, where it *is* styled by Separator/Case like any other token. See [Multiple Editions](/guides/editions/) for how narratorr decides what counts as a separate recording.
 
 ## Validation
 
