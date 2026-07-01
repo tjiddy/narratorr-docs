@@ -11,14 +11,19 @@ Go to **Settings > Connectors** to add, edit, test, or remove connectors. You ca
 
 ## How It Works
 
-When a book changes in your library, Narratorr fires a refresh at every **enabled** connector. The refresh fires on:
+Narratorr fires a refresh at every **enabled** connector whenever it changes a book's files or metadata on disk — not just on import. The refresh fires on:
 
 | Trigger | When |
 |---------|------|
 | **Import** | A book is imported via automatic grab or manual import (copy/move into the library) |
-| **Adopt** | A manual import in index-only (in-place) mode registers an existing folder |
+| **Adopt** | A manual/library import in index-only (in-place) mode registers an existing folder |
+| **Metadata change** | A book's metadata is edited, a **Fix Match** is applied, tags are re-written (single or bulk re-tag), a cover is uploaded or backfilled, or an OPF/cover sidecar is (re)written |
+| **Merge** | Two books are merged into one |
+| **Convert** | A book's files are converted (bulk convert) |
 | **Rename** | A book's files or folder are renamed/moved by the rename operation |
 | **Restored** | A library rescan re-discovers a book that had gone missing |
+
+Anything that rewrites a book's on-disk metadata — editing it, re-tagging it, writing an [OPF sidecar](/guides/tagging/#opf-metadata-sidecar), or refreshing its cover — now nudges your media server, so Audiobookshelf and Plex stay in step with narratorr without waiting for their own scheduled scan.
 
 Refreshes are **best-effort and fire-and-forget**. They never block or fail an import — if a connector is unreachable, the import still completes and the failure is logged. The refresh queue lives in memory: bursts are coalesced and debounced (a 2-second quiet window, flushed sooner if a batch gets large), then sent with a single automatic retry on a transient error. A refresh that's still waiting in the debounce window when Narratorr is killed (a hard crash or `SIGKILL`) is dropped — the queue is intentionally not durable. This is safe: your media server reconciles on its own next change or scheduled scan, so a missed push is self-healing.
 

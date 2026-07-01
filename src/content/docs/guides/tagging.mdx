@@ -32,8 +32,17 @@ Tagging requires **ffmpeg** — configure its path in **Settings > Post Processi
 | Album | Book title |
 | Title | Book title (single file) or preserved (multi-file) |
 | Composer | Narrator |
-| Grouping | Series name |
+| Grouping / Series | Series name |
+| Series Part | Position in series |
 | Track / Track Total | File position (multi-file only) |
+| Subtitle | Book subtitle |
+| ASIN | Audible ASIN |
+| Publisher | Publisher |
+| Description | Book description |
+| Date | Publication year |
+| Genre | Genre |
+
+The extended fields (series, series part, subtitle, ASIN, publisher, description, date, genre) are the **Audiobookshelf-survivable set** — they're written in the form that survives M4B embedding and is picked up by Audiobookshelf, so your media server sees narratorr's metadata rather than the release's. When writing M4B files, existing **chapter markers are preserved**.
 
 ## Cover Art Embedding
 
@@ -42,6 +51,18 @@ When **Embed Cover Art** is enabled, Narratorr looks for a `cover.jpg`, `cover.j
 In **populate missing** mode, cover art is only embedded if the file doesn't already have embedded artwork. In **overwrite** mode, it always embeds.
 
 If no cover image file is found in the directory, a warning is logged but tagging continues for the text metadata.
+
+## OPF Metadata Sidecar
+
+Separately from embedded tags, Narratorr can write a `metadata.opf` sidecar file into each book's folder. OPF is a portable metadata format that media servers — Audiobookshelf in particular — can read as a metadata source, so your library shows Narratorr's metadata instead of whatever tags shipped with the release.
+
+Enable it with **OPF Metadata Sidecar** in **Settings > Post Processing**. It's **independent of tag embedding** — you can write OPF sidecars without turning on audio tag writing, which is handy when you'd rather not rewrite the audio files themselves.
+
+**When it's written.** Narratorr writes or refreshes the sidecar whenever a book's metadata changes on disk: on import, when you edit a book's metadata, on **Fix Match**, when you upload a cover, and during a library sidecar reconcile. It's skipped for single-file "pointer" imports that don't own a folder.
+
+**Your own OPF is never overwritten.** Narratorr marks the files it writes with an internal `narratorr:managed` marker. If a book folder already contains a `metadata.opf` that Narratorr didn't write — one from Calibre or a previous Audiobookshelf match, say — Narratorr leaves it untouched and logs a warning rather than clobbering it.
+
+Writing or refreshing a sidecar also [nudges your connectors](/guides/connectors/) so the media server re-reads it.
 
 ## Supported Formats
 
