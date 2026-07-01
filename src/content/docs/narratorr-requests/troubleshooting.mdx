@@ -32,6 +32,19 @@ In production the app fails fast (rather than come up insecure) if:
 - **`AUTH_BYPASS` is enabled** — it's refused entirely in production; set `AUTH_BYPASS=0`.
 - **No auth method is enabled** — enable `LOCAL_AUTH` and/or configure an OIDC provider.
 
+## Blank page (or can't log in) over plain HTTP
+
+The app renders a blank page, or the page loads but sign-in silently fails, on a **production**
+deploy with **no TLS in front** (no reverse proxy terminating HTTPS). This happens because
+`BEHIND_TLS` defaults to `NODE_ENV=production`'s value — so a plain-HTTP prod deploy inherits the
+CSP `upgrade-insecure-requests` directive (the browser tries to upgrade asset requests to HTTPS,
+which don't exist, and blocks them) and a `Secure` session cookie (which a plain-HTTP browser won't
+send back).
+
+Fix: set `BEHIND_TLS=false` if you're genuinely running production over plain HTTP with nothing
+terminating TLS in front. Leave it unset (or `true`) once a reverse proxy / load balancer does
+terminate TLS — see [Installation](/narratorr-requests/installation/#environment-variables).
+
 ## `AUTH_BYPASS` won't bind a non-loopback host
 
 By design — an `AUTH_BYPASS` instance has no auth, so it refuses to listen on anything but

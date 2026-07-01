@@ -37,14 +37,15 @@ A couple of rules:
 - **One active request per book.** Requesting a book you already have an active request for just
   returns the existing one. You *can* re-request a book that was previously **denied** or
   **failed**.
-- **Quota.** Non-admin users have a rolling-window request quota. If you're at the limit, the
-  request is rejected with a "quota reached" message.
+- **Quota.** Non-admin users have a rolling-window request quota. At the limit, the request is
+  rejected with a "quota reached" message (`429`). An admin can also **block** a user from
+  requesting entirely — a distinct hard denial (`403`), not just a cap of zero.
 
 :::tip[See your quota at a glance]
-Your **My Requests** page shows a quota badge at the top — `used / limit requests used · N
-remaining · last N days` (e.g. *3 / 10 requests used · 7 remaining · last 30 days*). It turns amber
-as you approach the cap and red once you're at it; admins and uncapped users see **Unlimited
-requests** instead.
+Both the **Request** (search) page and **My Requests** show a quota badge in the header — `used /
+limit requests used · N remaining · last N days` (e.g. *3 / 10 requests used · 7 remaining · last 30
+days*). It turns amber as you approach the cap and red once you're at it; admins and uncapped users
+see **Unlimited requests** instead, and a blocked user sees **Requests blocked by admin**.
 :::
 
 ## My Requests
@@ -84,9 +85,17 @@ who's awaiting approval). Per user you can:
 - **Approve / Reject** a pending account (reject is durable; you can re-approve later).
 - **Promote / Demote** admin — *disabled on your own row* (you can't change your own role or
   status, so the last admin can't lock themselves out).
-- Set a **per-user request quota** (blank = the app default; admins are unlimited).
+- Set a **per-user request quota** — one of four explicit modes, not a blank/number toggle:
+
+  | Mode | Effect |
+  |------|--------|
+  | **Inherit** | No override — follows the app-wide default (see [Configuration](/narratorr-requests/configuration/#general--public-url--default-quota)). |
+  | **Unlimited** | No cap for this user, even if the app default is limited. |
+  | **Limit requests** | A custom positive cap for just this user, on the same rolling window. |
+  | **Blocked** | A hard admin denial — the user can't request at all, distinct from "a cap of zero." |
+
 - Toggle **auto-approve** — that user's requests skip the pending queue (they still count against
-  their quota). Admins always auto-approve.
+  their quota, unless blocked). Admins always auto-approve.
 
 Each user's detail page also lists their full request history.
 

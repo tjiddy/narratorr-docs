@@ -114,22 +114,65 @@ not the environment — so the env surface is deliberately just server + auth + 
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `SESSION_SECRET` | — | HMAC key for session cookies. **Required in production** (dev auto-generates an ephemeral one). |
-| `SETTINGS_KEY` | derived from `SESSION_SECRET` | Dedicated key for encrypting connector secrets at rest. Set a stable one to decouple them from session-secret rotation. |
+| `SESSION_SECRET` | — | HMAC key for session cookies. **Required in production** (dev auto-generates an ephemeral one). Supports the [`_FILE` convention](#docker-secrets-the-_file-convention). |
+| `SETTINGS_KEY` | derived from `SESSION_SECRET` | Dedicated key for encrypting connector secrets at rest. Set a stable one to decouple them from session-secret rotation. Supports the [`_FILE` convention](#docker-secrets-the-_file-convention). |
 | `NODE_ENV` | `development` | `production` enables the prod posture (secure cookies, AUTH_BYPASS refusal, etc.). |
+| `BEHIND_TLS` | defaults to `NODE_ENV=production` | Whether a reverse proxy / load balancer terminates TLS in front of the app. Gates the CSP `upgrade-insecure-requests` directive, the HSTS header, and the **`Secure`** session cookie flag. **Set to `false` if running production over plain HTTP with no TLS in front** — otherwise the browser silently blocks page assets (blank page) and the `Secure` cookie prevents login. See [Troubleshooting](/narratorr-requests/troubleshooting/#blank-page-or-cant-log-in-over-plain-http). |
 | `AUTH_BYPASS` | `false` | Dev shortcut — seeds a dev admin, every request is that admin. Refused in prod / non-loopback. |
 | `ALLOW_INSECURE_AUTH_BYPASS` | `false` | Escape hatch to allow `AUTH_BYPASS` on a non-loopback bind. |
 | `LOCAL_AUTH` | `true` | Enable local email/password auth. |
-| `OIDC_PROVIDERS` | — | Comma-separated OIDC provider ids; each configured with `OIDC_<ID>_*`. See [Authentication](/narratorr-requests/authentication/). |
+| `OIDC_PROVIDERS` | — | Comma-separated OIDC provider ids; each configured with `OIDC_<ID>_*`. See [Authentication](/narratorr-requests/authentication/). `OIDC_<ID>_CLIENT_SECRET` supports the [`_FILE` convention](#docker-secrets-the-_file-convention) too. |
 | `BOOTSTRAP_ADMIN` | — | Pin admin to `<provider>:<subjectOrUsername>`; disables first-user-auto-admin. |
 | `TRUSTED_PROXIES` | off | Trust `X-Forwarded-*` for the real client IP behind a reverse proxy (for rate-limit keying). |
 | `BIND_HOST` | `127.0.0.1` | Listen interface (the Docker image sets `0.0.0.0`). |
 | `DATABASE_PATH` | `/data/narratorr-requests.db` (image) | libSQL database file. |
 | `PORT` | `3000` | HTTP port. |
-| `DEFAULT_REQUEST_QUOTA` | `10` | Default rolling-window request quota for new users (blank/0 = unlimited). |
+
+The default request quota is **not** an environment variable — it's admin-editable in
+[Settings](/narratorr-requests/configuration/#general--public-url--default-quota) so it can change
+without a redeploy.
 
 See [`.env.docker.example`](https://github.com/tjiddy/narratorr-requests/blob/main/.env.docker.example)
 in the repo for a copy-paste production template, including the full OIDC variable pattern.
+
+### Docker secrets: the `_FILE` convention
+
+Instead of passing `SESSION_SECRET`, `SETTINGS_KEY`, or an OIDC `CLIENT_SECRET` as a plain
+environment variable (readable via `docker inspect` / `/proc/<pid>/environ`), point `<NAME>_FILE`
+at a file mounted **read-only** and the app reads the value from there instead — it never enters
+the process environment:
+
+```yaml
+services:
+  narratorr-requests:
+    # ...
+    environment:
+      - SESSION_SECRET_FILE=/run/secrets/session_secret
+      - SETTINGS_KEY_FILE=/run/secrets/settings_key
+      - OIDC_PLEX_CLIENT_SECRET_FILE=/run/secrets/oidc_plex_client_secret
+    secrets:
+      - session_secret
+      - settings_key
+      - oidc_plex_client_secret
+
+secrets:
+  session_secret:
+    file: ./secrets/session_secret.txt
+  settings_key:
+    file: ./secrets/settings_key.txt
+  oidc_plex_client_secret:
+    file: ./secrets/oidc_plex_client_secret.txt
+```
+
+Behavior:
+
+- The file's contents are **trimmed** (a trailing newline from `echo`/editors won't corrupt the
+  value).
+- `<NAME>_FILE` **takes precedence** over the plain `<NAME>` if both are set.
+- An explicitly-set `_FILE` that's **unreadable or empty** fails fast at startup, naming the
+  variable and path — never the file contents — rather than silently falling back to an empty
+  secret.
+- Fully **additive**: leave `_FILE` unset and behavior is unchanged from a plain env var.
 
 ## First boot
 
