@@ -12,6 +12,10 @@ Processing is not an automatic step in the import pipeline. Files are imported a
 - **Docker:** ffmpeg is pre-installed in the production image. No setup needed.
 - **Manual install:** Install ffmpeg and configure its path in **Settings > Post Processing > ffmpeg Path**.
 
+:::note[FFmpeg 8 for xHE-AAC]
+The Docker image ships **FFmpeg 8**, which is required to decode **xHE-AAC (USAC)** audiobooks — a newer Audible codec. If you run a manual install with an older FFmpeg (7 or earlier), xHE-AAC releases can't be decoded: narratorr detects the version at startup, logs a warning, and holds any xHE-AAC book for review rather than importing something it can't read. Every other format works fine on older FFmpeg. Docker users are already on 8 and need to do nothing.
+:::
+
 ## Settings
 
 Configure audio processing in **Settings > Post Processing**.

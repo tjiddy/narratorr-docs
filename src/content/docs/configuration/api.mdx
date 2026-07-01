@@ -382,6 +382,37 @@ curl -X POST -H "X-Api-Key: your-api-key" -H "Content-Type: application/json" \
   "http://your-narratorr-host:3000/api/v1/books/bk_3Qp9z.../grab"
 ```
 
+## System
+
+### `GET /api/v1/system`
+
+Version and build information for the running server — handy as a health probe or a "what version am I on?" check from a companion app. Like every v1 endpoint, it requires an API key. Returns a single object (not a list):
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `version` | string | Narratorr version (semver, or `dev` for an unversioned build). |
+| `commit` | string | Git commit the build was cut from (`unknown` if not stamped). |
+| `buildTime` | string | ISO 8601 build timestamp (`unknown` if not stamped). |
+| `nodeVersion` | string | Node.js runtime version, e.g. `v24.0.0`. |
+| `os` | string | Host OS type and release, e.g. `Linux 5.10.0`. |
+
+```bash
+curl -H "X-Api-Key: your-api-key" \
+  "http://your-narratorr-host:3000/api/v1/system"
+```
+
+```json
+{
+  "version": "1.0.0",
+  "commit": "1a2b3c4",
+  "buildTime": "2026-06-30T12:00:00.000Z",
+  "nodeVersion": "v24.0.0",
+  "os": "Linux 5.10.0"
+}
+```
+
+The response is limited to exactly these fields — operational details like the library path, disk usage, or database size are deliberately **not** exposed here.
+
 ## Versioning
 
 `/api/v1/` is the supported, stable contract. The internal `/api/*` routes are unversioned and may change at any time — don't build against them. When a breaking change to the public API is needed, it ships under a new version prefix (`/api/v2/`), leaving `/api/v1/` intact.

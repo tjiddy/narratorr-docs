@@ -49,6 +49,7 @@ export default defineConfig({
             { label: 'Import Lists', slug: 'guides/import-lists' },
             { label: 'RSS Feeds', slug: 'guides/rss-feeds' },
             { label: 'Manual Import', slug: 'guides/manual-import' },
+            { label: 'Multiple Editions', slug: 'guides/editions' },
             { label: 'Blacklist', slug: 'guides/blacklist' },
             { label: 'Tagging & Cover Art', slug: 'guides/tagging' },
             { label: 'Backup & Restore', slug: 'guides/backup-restore' },
