@@ -63,7 +63,19 @@ few seconds), so you'll see a request move through its stages without refreshing
 | **Failed** | The acquisition failed (the reason, if known, is shown). |
 
 The list is read-only — there's no cancel or retry. A denied or failed book can simply be
-requested again from search.
+requested again from search. If you haven't requested anything yet, the empty page offers a
+**Browse audiobooks** button straight to search.
+
+## Your account
+
+Clicking your **username** in the header opens the account modal:
+
+- **Email** — your contact address, with a **Save** button. For local-auth users it starts as
+  your login email; for OIDC users it's backfilled from your provider (and anything you set here
+  survives future logins — clearing it re-enables the provider backfill).
+- **Email me when my request is…** — three opt-in checkboxes: **approved**, **denied** (includes
+  the admin's reason, when given), and **ready to listen**. Checkboxes apply instantly; they
+  render disabled (with an explanation) until an admin has configured an Email (SMTP) notifier.
 
 ## Admin: the Queue
 

@@ -11,8 +11,11 @@ or both sign-in methods.
 
 ## Local email + password
 
-On by default (`LOCAL_AUTH=true`). Email is both the login and the contact address; passwords are
-hashed with scrypt and compared in constant time.
+On by default (`LOCAL_AUTH=true`). Email is the login, and starts out as the contact address —
+the contact email is separately editable afterwards in the account modal (click your username)
+without affecting how you sign in. Passwords are hashed with scrypt and compared in constant
+time. For OIDC users the contact email is backfilled from provider claims on login; a manually
+saved address wins over later claims, and clearing it re-enables the backfill.
 
 - Users **Create account** / **Sign in** from the login page.
 - Passwords must be **8–200 characters**.

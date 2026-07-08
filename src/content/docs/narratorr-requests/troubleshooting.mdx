@@ -79,9 +79,13 @@ the request flips to **Failed** with a reason.
 
 - Confirm the notifier exists and its **Test** passes on the [Settings page](/narratorr-requests/configuration/).
 - Set the **Public URL** if you want the deep-link back to the queue in notifications.
-- Remember notifications are **admin-facing** — they fire on a new request, a new-user signup, and a failed request.
-  There is **no requester-facing "your book is available" notification**; requesters track status
-  on their [My Requests](/narratorr-requests/using/#my-requests) page (which updates live).
+- **Admin events** (new request, new-user signup, failed request) fire over every notifier you
+  configured.
+- **Requester emails** (approved / denied / ready-to-listen) need three things: an **Email
+  (SMTP)** notifier configured, a **contact email** on the requester's account, and the matching
+  **opt-in** checked in their account modal (click your username). Without an SMTP notifier the
+  opt-ins render disabled with an explanation. Requesters can always track status on their
+  [My Requests](/narratorr-requests/using/#my-requests) page (which updates live).
 
 ## Checking health
 

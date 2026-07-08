@@ -57,12 +57,16 @@ Until that connection is configured, search and requests return a "not connected
 
 </Steps>
 
-:::note[Notifications are admin-facing]
-narratorr-requests notifies the **admin** of a new request to review, a new user awaiting
-approval, and a request that failed to acquire — over any notifiers you add (ntfy, email, Discord,
-Slack, Telegram, Pushover, Gotify, or a generic webhook). It does **not** notify the requester when
-their book becomes available — requesters follow status on their **My Requests** page. (A
-requester-facing "your book is ready" notification is planned for a future release.)
+:::note[Two kinds of notifications]
+**Admin notifications** fire on a new request to review, a new user awaiting approval, and a
+request that failed to acquire — over any notifiers you add (ntfy, email, Discord, Slack,
+Telegram, Pushover, Gotify, or a generic webhook).
+
+**Requester emails** are opt-in, per user: clicking your username opens the account modal, where
+you set a contact email and choose which events to be emailed about — your request being
+**approved**, **denied** (with the admin's reason, when given), or **ready to listen**. Delivery
+requires an **Email (SMTP)** notifier to be configured; without one the opt-ins are shown
+disabled. Requesters can always follow status live on their **My Requests** page either way.
 :::
 
 ## Authentication vs. authorization

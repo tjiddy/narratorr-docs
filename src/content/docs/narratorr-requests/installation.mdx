@@ -127,6 +127,7 @@ not the environment — so the env surface is deliberately just server + auth + 
 | `BIND_HOST` | `127.0.0.1` | Listen interface (the Docker image sets `0.0.0.0`). |
 | `DATABASE_PATH` | `/data/narratorr-requests.db` (image) | libSQL database file. |
 | `PORT` | `3000` | HTTP port. |
+| `INSTANCE_BADGE` | — | Display-only badge for a secondary instance (e.g. `dev`): tints the browser-tab favicon violet and prefixes the title (`[dev] Requests`) so the tab is distinguishable from prod. Unset = no change. |
 
 The default request quota is **not** an environment variable — it's admin-editable in
 [Settings](/narratorr-requests/configuration/#general--public-url--default-quota) so it can change
