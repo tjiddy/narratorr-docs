@@ -7,12 +7,12 @@ Narratorr uses token-based templates to name audiobook folders and files in your
 
 ## Presets
 
-If you'd rather not hand-write templates, the **File Naming** section includes a **Preset** dropdown with four built-in format pairs. Selecting one populates both the folder and file format fields; editing either field afterward switches the dropdown to **Custom**.
+If you'd rather not hand-write templates, the **File Naming** section includes a **Preset** dropdown with five built-in format pairs. Selecting one populates both the folder and file format fields; editing either field afterward switches the dropdown to **Custom**.
 
 | Preset | Folder Format | File Format |
 |--------|---------------|-------------|
 | Standard | `{author}/{title}` | `{author} - {title}` |
-| Detailed | `{author}/{series}/{seriesPosition:00? - }{title}` | `{author} - {series? - }{seriesPosition:00? - }{title} {- ?trackNumber:000}` |
+| Detailed | `{author}/{series}/{seriesPosition:00? - }{title}` | `{author} - {series? - }{seriesPosition:00? - }{title}{ (?edition?)}{ - ?trackNumber:000}` |
 | Audiobookshelf | `{author}/{series?/}{title}` | `{title}` |
 | Plex | `{author}/{series?/}{year? - }{title}` | `{title}{ - pt?trackNumber:00}` |
 | Last, First | `{authorLastFirst}/{titleSort}` | `{authorLastFirst} - {titleSort}` |

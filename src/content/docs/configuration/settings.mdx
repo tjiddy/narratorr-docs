@@ -9,7 +9,7 @@ This page documents the settings sections grouped by the tab they live under. In
 
 ## General tab
 
-The General tab stacks the Library, "When a New Book Is Added", File Naming, Import, Network, Discovery, and Appearance sections.
+The General tab stacks the Library, File Naming, Import, Network, Discovery, and Appearance sections.
 
 ### Library
 
@@ -17,19 +17,11 @@ The General tab stacks the Library, "When a New Book Is Added", File Naming, Imp
 |---------|-------------|
 | **Library Path** | Root directory where Narratorr stores your audiobooks. In Docker, this maps to `/audiobooks`. |
 
-### When a New Book Is Added
-
-Defaults applied whenever a book is added (manually, via import lists, or via discovery).
-
-| Setting | Description |
-|---------|-------------|
-| **Search Immediately** | Trigger a search as soon as a book is added. Default: off. |
-
 ### File Naming
 
 | Setting | Description |
 |---------|-------------|
-| **Preset** | Apply a naming preset (Standard, Audiobookshelf, Plex, Last-First) that fills in both formats below; choosing your own tokens shows as "Custom". |
+| **Preset** | Apply a naming preset (Standard, Detailed, Audiobookshelf, Plex, Last-First) that fills in both formats below; choosing your own tokens shows as "Custom". |
 | **Separator** | Word separator applied to every rendered token. Options: Space, Period, Underscore, Dash. Default: Space. |
 | **Case** | Casing transform applied to rendered names. Options: Default, lowercase, UPPERCASE, Title Case. Default: Default (no change). |
 | **Folder Format** | Template for organizing audiobook folders. Uses tokens like `{author}/{title}`. See [Folder Format Tokens](/guides/folder-format/). |
@@ -70,7 +62,15 @@ See [Discovery & Recommendations](/guides/discovery/) for details.
 
 ## Search tab
 
-The Search tab stacks the Search (including the RSS Sync subsection), Metadata, Filtering, and Quality sections.
+The Search tab stacks the "When a New Book Is Added", Search (including the RSS Sync subsection), Metadata, Filtering, and Quality sections.
+
+### When a New Book Is Added
+
+Defaults applied whenever a book is added (manually, via import lists, or via discovery).
+
+| Setting | Description |
+|---------|-------------|
+| **Search Immediately** | Trigger a search as soon as a book is added. Default: off. |
 
 ### Search
 
@@ -122,7 +122,7 @@ Controls the minimum bar a release must clear to be eligible to grab. See [Quali
 
 ## Post Processing tab
 
-Audio processing requires ffmpeg. In Docker, ffmpeg is pre-installed and auto-detected. For manual installs, install ffmpeg and set its path. There is no master on/off toggle — processing runs only when an ffmpeg path is configured, and is invoked manually (per-book Merge or bulk Convert), not automatically at import time.
+Audio processing requires ffmpeg. In Docker, ffmpeg is pre-installed and auto-detected. For manual installs, install ffmpeg and set its path. There is no master on/off toggle — processing runs only when an ffmpeg path is configured. Merge and convert are manual by default (per-book **Merge** or bulk **Convert**), but the **Merge multi-file downloads** toggle opts completed downloads into an automatic merge after import.
 
 | Setting | Description |
 |---------|-------------|
@@ -131,7 +131,8 @@ Audio processing requires ffmpeg. In Docker, ffmpeg is pre-installed and auto-de
 | **Target Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when "Keep original" is on. |
 | **Keep original** | When on, the source file's bitrate is used instead of the target. Note: files are still re-encoded — this drops the bitrate cap, it is not a lossless copy. Default: on. |
 | **Merge Behavior** | When to merge multi-file downloads into a single chaptered file: `always`, `multi-file-only`, or `never`. Default: multi-file-only. |
-| **Max Concurrent Jobs** | Maximum number of manual merge jobs that can run simultaneously. Range: 1–8. Default: 1. |
+| **Max Concurrent Jobs** | Maximum number of merge jobs that can run simultaneously — manual and automatic merges share this cap. Range: 1–8. Default: 1. |
+| **Merge multi-file downloads** | Automatically merge a completed download's audio files into a single file once it lands in the library. Applies to downloads only — never Library Import or Manual Import. Default: off. |
 | **Post-Processing Script** | Absolute path to a custom script run after each successful import. See [Features Reference](/guides/features/#post-processing-script). |
 | **Script Timeout** | Maximum script execution time in seconds. Required when a script is set. Default: 300. |
 

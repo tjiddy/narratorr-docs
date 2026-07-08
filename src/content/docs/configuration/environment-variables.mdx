@@ -21,6 +21,7 @@ Environment variables configure server-level behavior. Most users don't need to 
 | `MONITOR_INTERVAL_CRON` | `*/30 * * * * *` | Download-monitor poll cadence as a cron expression. Advanced — rarely changed. |
 | `NARRATORR_SECRET_KEY` | (auto-generated) | 32-byte hex string used to encrypt credentials at rest (AES-256-GCM). If not set, a key is auto-generated and saved to `CONFIG_PATH/secret.key` on first run. Set this explicitly if you want the same key across container rebuilds without persisting the config volume. |
 | `AUDIBLE_REGION` | `us` | Fallback region for metadata lookups when not configured in Settings > General. Values: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. |
+| `INSTANCE_BADGE` | (unset) | Free-form badge (e.g. `dev`) for a secondary instance: the client recolors the favicon and prefixes the browser-tab title so the instance is distinguishable from production. Unset or blank = no change. |
 
 ## Docker Overrides
 

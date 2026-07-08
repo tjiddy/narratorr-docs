@@ -5,7 +5,7 @@ description: Import audiobooks from your filesystem into Narratorr's library.
 
 Manual import lets you bring existing audiobooks into Narratorr's library from a directory on disk — useful for migrating an existing collection or importing files you've obtained outside of Narratorr.
 
-Access it from the **Library Actions** menu on the Library page and choose **Import**, or go directly to `/import`.
+Access it from the **Library Actions** menu on the Library page and choose **Import Files**, or go directly to `/import`.
 
 ## Workflow
 
@@ -52,7 +52,7 @@ Choose an import mode:
 | **Copy** | Copies files into the library folder, leaving originals in place (default) |
 | **Move** | Moves files to the library folder |
 
-Click **Import** to process all selected books. Narratorr moves/copies each book's files into the library using your configured [folder format](/guides/folder-format/), creates database records, and enriches each book's metadata. Tagging and post-processing scripts apply to downloads, not manual imports — manual import does not embed audio tags or run the post-processing script. (It *does* write an [OPF metadata sidecar](/guides/tagging/#opf-metadata-sidecar) when that setting is enabled — the OPF sidecar is independent of tag embedding.)
+Click **Import** to process all selected books. Narratorr moves/copies each book's files into the library using your configured [folder format](/guides/folder-format/), creates database records, and enriches each book's metadata. Only audio files are imported — non-audio companions in the folder (ebooks, `.nfo`, `.cue`, images) are not copied into the library, and on **Move** they are preserved at the source rather than deleted. Tagging and post-processing scripts apply to downloads, not manual imports — manual import does not embed audio tags or run the post-processing script. (It *does* write an [OPF metadata sidecar](/guides/tagging/#opf-metadata-sidecar) when that setting is enabled — the OPF sidecar is independent of tag embedding.)
 
 **Editions and held-for-review.** A different recording of a book you already own is imported alongside it in a separate [edition folder](/guides/editions/) — the existing recording is never overwritten. If narratorr can't confidently classify a book (same recording, or different?), it's held for review: after the import runs, held books appear in a review panel where you can re-confirm them or force the import. Forcing bypasses the duplicate check but never overwrites files on disk.
 

@@ -7,7 +7,7 @@ Quality gates work at two stages: **search-time filtering** (which releases are 
 
 ## Search-Time Filters
 
-These settings are spread across the **Search** and **General** settings tabs, not a single Quality page.
+These settings all live on the **Search** settings tab, spread across several sections rather than a single Quality page.
 
 ### Quality
 
@@ -44,7 +44,7 @@ Configure in **Settings > Search**.
 
 ### When a New Book Is Added
 
-Configure in **Settings > General** (When a New Book Is Added section).
+Configure in **Settings > Search** (When a New Book Is Added section).
 
 | Setting | Description |
 |---------|-------------|
@@ -98,7 +98,7 @@ After a download completes, Narratorr probes the audio files and makes a decisio
 |--------|---------|
 | `narrator_mismatch` | The download's narrator tag doesn't match the book's expected narrator |
 | `duration_delta` | Duration differs from expected by more than 15% — could indicate an abridged version or wrong content |
-| `no_quality_data` | No existing quality data to compare against (first download for this book) |
+| `no_quality_data` | The existing files' quality (MB/hour) couldn't be computed, so there's nothing to compare the new download against. (A true first download — no files on disk — auto-imports without a comparison instead.) |
 | `probe_failed` | Couldn't read the audio files to determine quality |
 | `imported_book_replacement` | This book is already imported; the new grab is held so you can confirm the replacement |
 | `unhandled_error` | An unexpected error occurred during evaluation |

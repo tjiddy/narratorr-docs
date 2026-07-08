@@ -5,7 +5,7 @@ description: Merge multi-file downloads and convert audio formats using ffmpeg.
 
 Narratorr can process audiobook files after import — merging multiple files into a single audiobook file and converting between formats. This is powered by ffmpeg.
 
-Processing is not an automatic step in the import pipeline. Files are imported as-is, and you then trigger processing manually: a per-book **Merge** from the book page or a bulk **Convert** job. Processing runs only when an ffmpeg path is configured — there is no master on/off switch.
+Processing is manual by default: files are imported as-is, and you then trigger processing yourself — a per-book **Merge** from the book page or a bulk **Convert** job. The one exception is the opt-in **Merge multi-file downloads** toggle, which merges completed downloads automatically after import (see [Automatic merge after download](#automatic-merge-after-download)). Processing runs only when an ffmpeg path is configured — there is no master on/off switch.
 
 ## Requirements
 
@@ -27,7 +27,8 @@ Configure audio processing in **Settings > Post Processing**.
 | **Keep Original Bitrate** | Drop the target-bitrate cap and re-encode at (up to) the source bitrate instead of the target bitrate. Default: on. |
 | **Target Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when keep original bitrate is enabled. |
 | **Merge Behavior** | When the bulk **Convert** job merges multiple files: Always / Only when multiple files / Never. Default: "Only when multiple files". (The per-book **Merge** action always merges — see note below.) |
-| **Max Concurrent Jobs** | Maximum number of manual merge jobs that run at once (1–8). Default: 1. |
+| **Max Concurrent Jobs** | Maximum number of merge jobs that run at once — manual and automatic merges share this cap (1–8). Default: 1. |
+| **Merge multi-file downloads** | In the **After Download / Import** group: automatically merge a completed download's audio files into a single file after import. Downloads only — never Library Import or Manual Import. Default: off. See [Automatic merge after download](#automatic-merge-after-download). |
 | **Post-Processing Script** | Absolute path to a script run after each successful import. Receives `NARRATORR_BOOK_TITLE`, `NARRATORR_BOOK_AUTHOR`, `NARRATORR_IMPORT_PATH`, and `NARRATORR_IMPORT_FILE_COUNT` env vars. |
 | **Script Timeout** | Maximum seconds the post-processing script may run. Default: 300. Required when a script is set. |
 
@@ -53,7 +54,7 @@ The per-book **Merge** action only runs on books that have 2 or more top-level a
 
 ## How It Works
 
-Import places the downloaded files into the library folder as-is — no processing happens automatically. You then trigger processing on demand:
+Import places the downloaded files into the library folder as-is — no processing happens automatically unless you've opted in with **Merge multi-file downloads** (below). You then trigger processing on demand:
 
 1. From a book's page, start a **Merge** (requires 2+ audio files). The job is queued and runs under a concurrency limit, with progress reporting.
 2. Merge copies the files to a staging directory and runs ffmpeg to combine them in order.
@@ -62,7 +63,14 @@ Import places the downloaded files into the library folder as-is — no processi
 
 A bulk **Convert** job (from settings) applies the same processing across multiple books.
 
-## Bitrate Guidance
+## Automatic merge after download
+
+The **Merge multi-file downloads** toggle (in the **After Download / Import** group of **Settings > Post Processing**, default off) opts completed downloads into an automatic merge — the same job the per-book **Merge** button runs, kicked off for you once the files land in your library.
+
+- **Downloads only.** It fires only when a download finishes importing — never for Library Import or Manual Import.
+- **Multi-file books only.** The imported folder must contain 2 or more top-level audio files; single-file downloads are skipped.
+- **Same queue, same cap.** Auto-merges enter the same bounded queue as manual merges and count against **Max Concurrent Jobs**.
+- **Never fails the import.** The merge is fully isolated — if the merge can't be queued or later fails, the book stays imported as-is and you can still merge it manually.
 
 | Bitrate | Quality | File Size |
 |---------|---------|-----------|

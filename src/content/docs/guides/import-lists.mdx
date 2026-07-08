@@ -47,7 +47,7 @@ Every import list has these shared settings:
 2. Each item is enriched with metadata. When an item has an ASIN, Narratorr resolves it directly. If that ASIN doesn't resolve to an audiobook (for example, a print or Kindle ASIN), Narratorr automatically falls back to a title/author metadata search and adopts the matching audiobook's ASIN instead — so a non-audiobook ASIN no longer dead-ends. Items without an ASIN are matched the same way, by title/author search. An item that genuinely can't be resolved is still added, but flagged as needing attention (a "failed" enrichment state) and retried automatically later (roughly hourly)
 3. If the book doesn't already exist in your library, it's added with status `wanted`
 4. Duplicate books (matching ASIN or title+author) are silently skipped
-5. Newly added books appear in your library. If **Search Immediately** (quality settings) is enabled, an import-list-added book triggers a search right away; otherwise it's picked up on the next scheduled search cycle
+5. Newly added books appear in your library. If **Search Immediately** (Settings > Search, "When a New Book Is Added") is enabled, an import-list-added book triggers a search right away; otherwise it's picked up on the next scheduled search cycle
 
 ## Testing and Preview
 

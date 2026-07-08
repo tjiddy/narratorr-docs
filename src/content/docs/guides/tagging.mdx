@@ -80,4 +80,4 @@ In the preview you can opt individual fields out via checkboxes (for example, ke
 
 When tagging is enabled, it runs automatically as a post-import step: once a download's files are copied into your library, Narratorr writes the tags, then continues with any post-processing script and notifications. It is best-effort — a tagging failure is logged but does not fail the import. If tagging is disabled, files are imported as-is.
 
-Audio processing (merge/convert) is a separate, manual operation you trigger per book — it is **not** an automatic step in the import pipeline, so tagging does not depend on it.
+Audio processing (merge/convert) is a separate operation, manual by default — the opt-in **Merge multi-file downloads** toggle automates the merge for completed downloads. Either way, tagging does not depend on it.

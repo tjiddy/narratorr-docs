@@ -218,7 +218,7 @@ Add a book to the library by ASIN. The request body is **ASIN-only** — Narrato
 { "asin": "B08G9PRS1K" }
 ```
 
-On success, returns `201` with the newly created [book DTO](#get-apiv1booksid). If your General settings have **search immediately** enabled and the book lands in the `wanted` state, Narratorr fires a release search in the background (the response returns right away regardless).
+On success, returns `201` with the newly created [book DTO](#get-apiv1booksid). If your Search settings have **search immediately** enabled and the book lands in the `wanted` state, Narratorr fires a release search in the background (the response returns right away regardless).
 
 | Status | Body | Meaning |
 |--------|------|---------|
