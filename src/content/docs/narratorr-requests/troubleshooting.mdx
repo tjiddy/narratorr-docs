@@ -5,14 +5,17 @@ description: Common narratorr-requests first-run and operational issues, and how
 
 ## "Narratorr isn't connected yet" on search
 
-Search and requests need the narratorr connection. An **admin** must set the narratorr host, port,
-and API key on the [Settings page](/narratorr-requests/configuration/) and **Test** it. Until then,
-search returns this notice.
+Search and requests need the narratorr connection. An **admin** must set narratorr's **Server
+URL** (full base URL including scheme, e.g. `http://narratorr:3000`) and **API key** on the
+[Settings page](/narratorr-requests/configuration/#narratorr-connection) and **Save** (use
+**Test** first to verify). Until then, search returns this notice.
 
 ## Container crash-loops with `SQLITE_CANTOPEN`
 
-The log shows `ConnectionFailed("Unable to open ... database file")` / SQLite error 14, repeating.
-The container runs as the non-root **`node` user (uid 1000)** and can't write its data directory.
+The log shows a libSQL open failure — `Unable to open ... database file`, SQLite code 14
+(`SQLITE_CANTOPEN`) — and the container exits and restarts in a loop (migrations run before the
+server listens, so a database it can't open is a hard boot failure). The container runs as the
+non-root **`node` user (uid 1000)** and can't write its data directory.
 
 This happens with a **host bind mount** whose directory is owned by root. Fix the owner on the
 host and restart:
@@ -26,11 +29,15 @@ A **named volume** avoids this entirely — see [Installation](/narratorr-reques
 
 ## App refuses to start in production
 
-In production the app fails fast (rather than come up insecure) if:
+The app fails fast at boot (rather than come up insecure) if:
 
-- **`SESSION_SECRET` is unset** — set it (`openssl rand -hex 32`).
-- **`AUTH_BYPASS` is enabled** — it's refused entirely in production; set `AUTH_BYPASS=0`.
-- **No auth method is enabled** — enable `LOCAL_AUTH` and/or configure an OIDC provider.
+- **`SESSION_SECRET` is unset** *(production only)* — set it (`openssl rand -hex 32`).
+- **`AUTH_BYPASS` is enabled** *(production only)* — it's refused entirely there; set `AUTH_BYPASS=0`.
+- **No auth method is enabled** *(any environment)* — enable `LOCAL_AUTH` and/or configure an
+  OIDC provider.
+- **The environment is malformed** — an incomplete `OIDC_<ID>_*` block, an invalid or duplicate
+  provider id, an unreadable `*_FILE` secret, a bad `BOOTSTRAP_ADMIN` — the startup error names
+  the variable.
 
 ## Blank page (or can't log in) over plain HTTP
 
@@ -61,11 +68,13 @@ That's the approval queue working as intended. An **admin** approves them on the
 
 The provider callback didn't complete. Check that:
 
-- The provider's **redirect URI** exactly matches `https://<your-public-url>/api/auth/oidc/<id>/callback`.
+- `OIDC_<ID>_REDIRECT_URI` is set and **byte-identical** to the URI registered at the provider
+  (`https://<your-public-url>/api/auth/oidc/<id>/callback`) — the app sends that configured
+  value to the IdP and rebuilds the callback from it, never from the incoming `Host` header. A
+  trailing slash or `http:` vs `https:` mismatch fails the exchange.
 - `OIDC_<ID>_ISSUER`, `OIDC_<ID>_CLIENT_ID`, and the client secret (if the provider requires one)
   are correct.
-- Your reverse proxy forwards the callback to the app and `TRUSTED_PROXIES` is set so the right
-  origin is used.
+- Your reverse proxy actually forwards `/api/auth/oidc/<id>/callback` through to the app.
 
 ## A request is stuck on "Processing"
 
@@ -93,11 +102,13 @@ eBook affordances appear only when **all** of these hold:
 
 Two different gates, told apart by the copy under the button:
 
-- **"Send to Kindle isn't available on this instance right now."** — instance-side: there's no
+- **"Send to Kindle isn’t available on this instance right now."** — instance-side: there's no
   confirmed **Kindle sender**. An admin selects an Email (SMTP) notifier under
   [Settings → eBooks](/narratorr-requests/configuration/#kindle-sender). If it *was* working
   before, the selected notifier's **From** address probably changed — that section shows an
-  alert, and delivery stays paused until you **Reconfirm sender**.
+  alert, and delivery stays paused until you **Reconfirm sender**. (The same copy also shows
+  for a moment while the feature check is still loading — reopen the sheet before chasing
+  config.)
 - **"Send to Kindle needs your device address"** — user-side: add your `@kindle.com` address in
   the account modal (click your username → **Kindle address**).
 
@@ -118,9 +129,11 @@ Delivery past that point is Amazon's side of the handoff:
 ## Notifications aren't arriving
 
 - Confirm the notifier exists and its **Test** passes on the [Settings page](/narratorr-requests/configuration/).
-- Set the **Public URL** if you want the deep-link back to the queue in notifications.
-- **Admin events** (new request, new-user signup, failed request) fire over every notifier you
-  configured.
+- Set the **Public URL** if you want deep-links back to the app in notifications (the queue or
+  the Users page, depending on the event).
+- **Admin events** (New request, New signup, Request failed) fire only over notifiers that have
+  that event **checked** — each notifier picks its own in its **Events** field. A notifier with
+  no events selected even hides its Test button.
 - **Requester emails** (approved / denied / ready-to-listen) need three things: an **Email
   (SMTP)** notifier configured, a **contact email** on the requester's account, and the matching
   **opt-in** checked in their account modal (click your username). Without an SMTP notifier the

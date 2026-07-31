@@ -11,7 +11,7 @@ an admin approves them, and approved requests are handed to narratorr's `search 
 import` pipeline. It's the "let other people ask for audiobooks without giving them the keys to
 narratorr" layer.
 
-![The narratorr-requests catalog — search the audiobook library and hit Request](../../../assets/narratorr-requests/search.png)
+![The narratorr-requests catalog — search the audiobook catalog and hit Request](../../../assets/narratorr-requests/search.png)
 
 ## How it fits with narratorr
 
@@ -27,8 +27,9 @@ coupling — no shared database, no shared filesystem.
   in-app **Settings** page after first boot — not through environment variables.
 
 :::note
-You need a **running narratorr instance and an API key** for it (narratorr → Settings → API).
-Until that connection is configured, search and requests return a "not connected yet" notice.
+You need a **running narratorr instance and an API key** for it (narratorr → Settings →
+Security). Until that connection is configured, search returns a *"Narratorr isn't connected
+yet"* notice, and approving a request fails with the same message.
 :::
 
 ## The request flow
@@ -41,9 +42,9 @@ Until that connection is configured, search and requests return a "not connected
 2. **Get approved.** New users land in an **approval queue** (`pending`) and can't search or
    request until an admin approves them. The first user to sign in becomes the admin.
 
-3. **Search & request.** An approved user searches the catalog and hits **Request** on a result.
-   Each result shows whether the book is already in your library, already on the way, or
-   requestable.
+3. **Search & request.** An approved user searches the catalog and hits **Request** on a result
+   (non-admin requests draw down a rolling request quota, if the admin set one). Each result
+   shows whether the book is already in your library, already on the way, or requestable.
 
 4. **Admin approves the request.** The admin approves (or denies) each request from the **Queue**.
    Admins and any users flagged *auto-approve* skip this step.
@@ -52,8 +53,9 @@ Until that connection is configured, search and requests return a "not connected
    by ASIN) and the request enters `acquiring`.
 
 6. **Track to available.** narratorr-requests polls narratorr and advances the request to
-   `available` once narratorr finishes importing. The requester watches this **live on their My
-   Requests page** — it updates every few seconds.
+   `available` once narratorr finishes importing — or to **Failed**, with a plain-English
+   reason. The requester watches this **live on their My Requests page** — it updates every few
+   seconds.
 
 </Steps>
 
@@ -65,8 +67,9 @@ Telegram, Pushover, Gotify, or a generic webhook).
 **Requester emails** are opt-in, per user: clicking your username opens the account modal, where
 you set a contact email and choose which events to be emailed about — your request being
 **approved**, **denied** (with the admin's reason, when given), or **ready to listen**. Delivery
-requires an **Email (SMTP)** notifier to be configured; without one the opt-ins are shown
-disabled. Requesters can always follow status live on their **My Requests** page either way.
+needs two things — a saved contact email on your account and an **Email (SMTP)** notifier
+configured by an admin; until both exist the opt-ins are shown disabled. Requesters can always
+follow status live on their **My Requests** page either way.
 :::
 
 ## Companion eBooks
@@ -76,7 +79,9 @@ too: library books grow a green **Get eBook** action — download the EPUB, or *
 (the app emails it to the user's device, and walks them through Amazon's one-time approved-sender
 setup). It's opt-in on both sides: an admin toggle in
 [Settings](/narratorr-requests/configuration/#ebooks) plus eBook support enabled in narratorr
-itself. See [Using → eBooks](/narratorr-requests/using/#ebooks-download-or-send-to-kindle).
+itself — and Send to Kindle additionally needs a configured
+[Kindle sender](/narratorr-requests/configuration/#kindle-sender). See
+[Using → eBooks](/narratorr-requests/using/#ebooks-download-or-send-to-kindle).
 
 ## Authentication vs. authorization
 
