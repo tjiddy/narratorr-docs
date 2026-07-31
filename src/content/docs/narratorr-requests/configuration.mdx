@@ -1,15 +1,15 @@
 ---
 title: Configuration
-description: Connect to narratorr and add notifiers in narratorr-requests's in-app Settings.
+description: Connect to narratorr, turn on eBook support, and add notifiers — all in narratorr-requests's in-app Settings.
 ---
 
 import { Steps } from '@astrojs/starlight/components';
 
 Everything narratorr-requests connects to — narratorr itself and your notifiers — is configured on
-the admin **Settings** page, not in environment variables. The page has a left-nav with four
-sections: **General**, **Narratorr**, **Notifications**, and **System**. Secret values are **stored
-encrypted at rest** (the at-rest key comes from `SETTINGS_KEY`, or is derived from `SESSION_SECRET`
-when that's unset).
+the admin **Settings** page, not in environment variables. The page has a left-nav with five
+sections: **General**, **Narratorr**, **eBooks**, **Notifications**, and **System**. Secret values
+are **stored encrypted at rest** (the at-rest key comes from `SETTINGS_KEY`, or is derived from
+`SESSION_SECRET` when that's unset).
 
 The Narratorr connection and every notifier have a **Test** button that validates the **current form
 values without saving**, so you can confirm something works before committing it. Each section
@@ -62,6 +62,37 @@ There's no enable/disable toggle — narratorr is either configured or not. To d
 the Server URL and Save**; that clears the connection and its stored key.
 :::
 
+## eBooks
+
+Gates the [companion-eBook features](/narratorr-requests/using/#ebooks-download-or-send-to-kindle)
+(**Get eBook** → download / Send to Kindle).
+
+**Enable ebook support** — offer the eBook edition alongside the audiobook, ready to download or
+send to Kindle. This is an AND with narratorr's own side: the connected narratorr must **also**
+have eBook support enabled (it advertises the capability over `/api/v1`) and actually keep
+companion EPUBs paired with imported books. While either half is off, users see **no eBook UI at
+all** — no disabled buttons, no errors, just absent.
+
+### Kindle sender
+
+Saving eBook support on reveals the **Kindle sender** — which of your **Email (SMTP)** notifiers
+Kindle delivery sends from (eligible ones listed as *name — from address*). Until a sender is
+selected and confirmed, Kindle delivery is unavailable — users can still download.
+
+Kindle delivery always sends from this **one fixed mailbox**, because every user must add that
+exact address to their own Amazon approved-senders list (the app walks them through it — see
+[Setting up Send to Kindle](/narratorr-requests/using/#setting-up-send-to-kindle-one-time)). That's
+why the app is deliberately sticky about the sender's identity:
+
+- On **Save**, the app confirms the notifier's current **From** address and pins it as the
+  address users allowlist.
+- If that notifier's From **changes later**, Kindle delivery **pauses** with an alert here until
+  you **Reconfirm sender** — it never silently follows the new address, since that would break
+  every user's Amazon allowlist at once.
+- Fixing the *same* notifier in place (host, password, …) needs no re-save here. Anything that
+  changes **which notifier sends** — deleting and recreating it, or selecting a different one —
+  needs a save here (delivery stays paused until then).
+
 ## Notifiers
 
 On the **Notifications** section you add **any number of notifiers** — there's no fixed set of
@@ -72,7 +103,9 @@ enable/disable toggle** — a notifier is live by existing; delete it to stop it
 Notifier **events** are admin-facing — they go to you, the admin — and fire only on the events
 you select. The **Email (SMTP)** notifier additionally serves as the delivery channel for
 **requester opt-in emails** (approved / denied / ready-to-listen, chosen per user in the account
-modal): those go to each requester's own contact address, not the admin recipient.
+modal): those go to each requester's own contact address, not the admin recipient. An email
+notifier can also be selected as the [**Kindle sender**](#kindle-sender) — the mailbox Send to
+Kindle delivers from.
 
 | Event | Fires when |
 |-------|-----------|

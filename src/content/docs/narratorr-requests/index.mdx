@@ -69,6 +69,15 @@ requires an **Email (SMTP)** notifier to be configured; without one the opt-ins 
 disabled. Requesters can always follow status live on their **My Requests** page either way.
 :::
 
+## Companion eBooks
+
+If narratorr keeps a **companion EPUB** alongside an audiobook, narratorr-requests can offer that
+too: library books grow a green **Get eBook** action — download the EPUB, or **Send to Kindle**
+(the app emails it to the user's device, and walks them through Amazon's one-time approved-sender
+setup). It's opt-in on both sides: an admin toggle in
+[Settings](/narratorr-requests/configuration/#ebooks) plus eBook support enabled in narratorr
+itself. See [Using → eBooks](/narratorr-requests/using/#ebooks-download-or-send-to-kindle).
+
 ## Authentication vs. authorization
 
 These are independent on purpose:
@@ -87,5 +96,6 @@ So you can let anyone sign in via your IdP while still gatekeeping who actually 
   queue, and admin bootstrap.
 - [Configuration](/narratorr-requests/configuration/) — connect to narratorr and set up
   notifications in the Settings page.
-- [Using narratorr-requests](/narratorr-requests/using/) — search, request, and manage the queue.
+- [Using narratorr-requests](/narratorr-requests/using/) — search, request, grab companion
+  eBooks, and manage the queue.
 - [Troubleshooting](/narratorr-requests/troubleshooting/) — common first-run issues.

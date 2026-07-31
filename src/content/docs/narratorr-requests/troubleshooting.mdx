@@ -75,6 +75,46 @@ for as long as narratorr hasn't imported the book yet (it may legitimately sit "
 narratorr's next scheduled search). Check the book's state in narratorr. If it ultimately fails,
 the request flips to **Failed** with a reason.
 
+## No "Get eBook" button anywhere
+
+eBook affordances appear only when **all** of these hold:
+
+- **Enable ebook support** is on in [Settings → eBooks](/narratorr-requests/configuration/#ebooks).
+- The connected **narratorr also has eBook support enabled** — narratorr-requests probes
+  narratorr's capability and hides everything eBook when it's off (or the narratorr version
+  predates it). The probe is cached, so give it a couple of minutes after flipping the narratorr
+  side.
+- The book is **In library** (imported). A book still on the way shows no eBook action until
+  narratorr finishes importing it.
+- narratorr actually has a **companion EPUB** paired with the book — an imported book without one
+  shows a **No eBook** pill instead of the button.
+
+## Send to Kindle is disabled in the sheet
+
+Two different gates, told apart by the copy under the button:
+
+- **"Send to Kindle isn't available on this instance right now."** — instance-side: there's no
+  confirmed **Kindle sender**. An admin selects an Email (SMTP) notifier under
+  [Settings → eBooks](/narratorr-requests/configuration/#kindle-sender). If it *was* working
+  before, the selected notifier's **From** address probably changed — that section shows an
+  alert, and delivery stays paused until you **Reconfirm sender**.
+- **"Send to Kindle needs your device address"** — user-side: add your `@kindle.com` address in
+  the account modal (click your username → **Kindle address**).
+
+## "Sent to Amazon" but nothing arrives on the Kindle
+
+Delivery past that point is Amazon's side of the handoff:
+
+- **The approved-sender list is the usual culprit** — Amazon silently drops personal documents
+  from unapproved senders. Approve the app's **sender address** (shown in the account modal and
+  on the send sheet) on your **Approved Personal Document E-mail List** — *not* your own Kindle
+  address. One-time per Amazon account; steps in
+  [Setting up Send to Kindle](/narratorr-requests/using/#setting-up-send-to-kindle-one-time).
+- Conversion and delivery take **a few minutes** — check the Kindle library or Amazon's
+  **Content & Devices** for the document before re-sending.
+- Books over Amazon's **25 MiB** personal-document cap are refused up front with a
+  "download it instead" message — nothing is sent, so nothing will arrive.
+
 ## Notifications aren't arriving
 
 - Confirm the notifier exists and its **Test** passes on the [Settings page](/narratorr-requests/configuration/).
