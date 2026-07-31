@@ -1,19 +1,20 @@
 ---
 title: Configuration
-description: Connect to narratorr and add notifiers in narratorr-requests's in-app Settings.
+description: Connect to narratorr, turn on eBook support, and add notifiers — all in narratorr-requests's in-app Settings.
 ---
 
 import { Steps } from '@astrojs/starlight/components';
 
 Everything narratorr-requests connects to — narratorr itself and your notifiers — is configured on
-the admin **Settings** page, not in environment variables. The page has a left-nav with four
-sections: **General**, **Narratorr**, **Notifications**, and **System**. Secret values are **stored
-encrypted at rest** (the at-rest key comes from `SETTINGS_KEY`, or is derived from `SESSION_SECRET`
-when that's unset).
+the admin **Settings** page, not in environment variables. The page has a left-nav with five
+sections: **General**, **Narratorr**, **eBooks**, **Notifications**, and **System**. Secret values
+are **stored encrypted at rest** (the at-rest key is derived from `SETTINGS_KEY`, or from
+`SESSION_SECRET` when that's unset).
 
 The Narratorr connection and every notifier have a **Test** button that validates the **current form
-values without saving**, so you can confirm something works before committing it. Each section
-**saves on its own** — a **Save** button appears once you've changed a value.
+values without saving**, so you can confirm something works before committing it. Each card
+**saves on its own** — a **Save** button appears once you've changed a value (the Add/Edit-notifier
+dialog is the exception: its **Add** / **Save** button is always there).
 
 ## General — Public URL & default quota
 
@@ -23,7 +24,7 @@ from a ping to the thing that needs action. Leave it blank and notifications sim
 
 This section also sets the **app-wide default request quota** — the rolling-window cap that applies
 to every user who hasn't been given a per-user override (see
-[Managing quotas](/narratorr-requests/using/#admin-users)). Two modes:
+[Managing quotas](/narratorr-requests/using/#admin-users)); admins are always unlimited. Two modes:
 
 | Mode | Effect |
 |------|--------|
@@ -39,8 +40,8 @@ The lifeline — required for search and requests to work. Two fields:
 
 | Field | Notes |
 |-------|-------|
-| **Server URL** | narratorr's full base URL, **including scheme and port** (e.g. `http://narratorr:3000`). Add a subpath if narratorr sits behind a reverse-proxy (e.g. `http://host:3000/lib`). |
-| **API key** | From **narratorr → Settings → API**. Masked once saved; leave blank to keep the current key. |
+| **Server URL** | narratorr's full base URL, **including the scheme** — and the port when it isn't the scheme default (e.g. `http://narratorr:3000`). Add a subpath if narratorr sits behind a reverse-proxy (e.g. `http://host:3000/lib`). |
+| **API key** | From **narratorr → Settings → Security**. Masked once saved; leave blank to keep the current key. |
 
 <Steps>
 
@@ -62,15 +63,52 @@ There's no enable/disable toggle — narratorr is either configured or not. To d
 the Server URL and Save**; that clears the connection and its stored key.
 :::
 
+## eBooks
+
+Gates the [companion-eBook features](/narratorr-requests/using/#ebooks-download-or-send-to-kindle)
+(**Get eBook** → download / Send to Kindle).
+
+**Enable ebook support** — offer the eBook edition alongside the audiobook, ready to download or
+send to Kindle. This is an AND with narratorr's own side: the connected narratorr must **also**
+have eBook support enabled (it advertises the capability over `/api/v1`) and actually keep
+companion EPUBs paired with imported books. While either half is off, users see **no eBook UI at
+all** — no disabled buttons, no errors, just absent.
+
+### Kindle sender
+
+Saving eBook support on reveals the **Kindle sender** — which of your **Email (SMTP)** notifiers
+Kindle delivery sends from (eligible ones listed as *name — from address*). Until a sender is
+selected and confirmed, Kindle delivery is unavailable — users can still download.
+
+Kindle delivery always sends from this **one fixed mailbox**, because every user must add that
+exact address to their own Amazon approved-senders list (the app walks them through it — see
+[Setting up Send to Kindle](/narratorr-requests/using/#setting-up-send-to-kindle-one-time)). That's
+why the app is deliberately sticky about the sender's identity:
+
+- On **Save**, the app confirms the notifier's current **From** address and pins it as the
+  address users allowlist.
+- If that notifier's From **changes later**, Kindle delivery **pauses** with an alert here until
+  you **Reconfirm sender** — it never silently follows the new address, since that would break
+  every user's Amazon allowlist at once.
+- Fixing the *same* notifier in place (host, password, …) needs no re-save here. Anything that
+  changes **which notifier sends** — deleting and recreating it, or selecting a different one —
+  needs a save here (delivery stays paused until then).
+
 ## Notifiers
 
 On the **Notifications** section you add **any number of notifiers** — there's no fixed set of
 channels. Click **Add Notifier**, pick a type, choose the events it fires on, and fill in its
-fields. Each saved notifier has its own **Test** (sends a real sample) and **Delete**. There's **no
-enable/disable toggle** — a notifier is live by existing; delete it to stop it.
+fields. Each saved notifier has **Edit**, its own **Test** (sends a real sample), and **Delete**;
+a notifier whose type the app no longer recognizes is delete-only. There's **no enable/disable
+toggle** — a notifier is live by existing; delete it to stop it.
 
-Every notifier is **admin-facing** — notifications go to you, the admin, never the requester — and
-fires only on the events you select:
+Notifier **events** are admin-facing — they go to you, the admin — and fire only on the events
+you select. The **Email (SMTP)** notifier additionally serves as the delivery channel for
+**requester opt-in emails** (approved / denied / ready-to-listen, chosen per user in the account
+modal): those go to each requester's own contact address, not the admin recipient (with several
+email notifiers, requester emails use the first usable one in stored order). An email notifier
+can also be selected as the [**Kindle sender**](#kindle-sender) — the mailbox Send to Kindle
+delivers from, independent of which notifier handles requester emails.
 
 | Event | Fires when |
 |-------|-----------|
@@ -82,24 +120,27 @@ fires only on the events you select:
 
 | Type | Key fields |
 |------|-----------|
-| **ntfy** | Server URL (defaults to `https://ntfy.sh`), topic, optional access token, optional priority. |
-| **Email (SMTP)** | Host / port, an implicit-TLS toggle (465 vs STARTTLS on 587), optional username / password, a From address, and the admin recipient. |
+| **ntfy** | Server URL (required — `https://ntfy.sh` for the hosted service, or your self-hosted base URL), topic, optional access token, optional priority. |
+| **Email (SMTP)** | Host / port, an implicit-TLS toggle (465 vs STARTTLS on 587), optional username / password, a From address, and the admin recipient (for admin events only — requester opt-in emails go to each user's own address over this same SMTP config). |
 | **Discord** | A Discord webhook URL (optionally include the cover image). |
 | **Slack** | A Slack incoming-webhook URL. |
 | **Telegram** | Bot token + chat ID. |
 | **Pushover** | App token + user key. |
 | **Gotify** | Server URL + app token. |
-| **Webhook** | A generic JSON `POST` to any URL — the escape hatch for anything not listed. |
+| **Webhook / Discord** | A generic JSON `POST` to any URL — the escape hatch for anything not listed (the same URL field also accepts a plain Discord webhook). |
 
 ## How secrets are handled
 
 Every secret — the narratorr API key and all notifier credentials (tokens, keys, and capability
 webhook URLs) — is **never returned to the browser**. A saved secret shows masked
-(`•••••••• (unchanged)`, or a host-only hint for a capability URL). On save:
+(`•••••••• (unchanged)`). On save:
 
 - **Leave a secret blank** → the stored value is kept.
 - **Type a new value** → it replaces the stored one.
-- **Clear it** → it's removed.
+- **Tick "Clear stored value"** (offered only on an already-saved *optional* secret) → it's
+  removed. Required secrets (webhook URLs, tokens) can't be cleared — replace them, or delete
+  the notifier. The narratorr API key has no clear control either: blank the Server URL and
+  Save to drop the whole connection.
 
 The **Test** button follows the same rule, so testing an existing connector with the secret left
 blank uses the stored secret — you don't have to re-enter it just to test.
@@ -110,7 +151,7 @@ A **read-only** section for a quick server/environment snapshot — no configura
 
 | Field | Shows |
 |-------|-------|
-| **Version** | The running narratorr-requests version. |
+| **Version** | The running build (`branch@shortsha`, e.g. `main@a1b2c3d` — `dev` for a local build). |
 | **Built** | The image build timestamp. |
 | **Node.js** | The Node.js runtime version. |
 | **OS** | The host/container OS. |

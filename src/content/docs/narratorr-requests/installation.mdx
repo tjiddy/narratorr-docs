@@ -11,8 +11,8 @@ SQLite database lives on a volume and migrations apply automatically on boot.
 ## Prerequisites
 
 - **Docker** (recommended) — or **Node.js 24.10+** with pnpm for a source install.
-- A **running narratorr instance** and an **API key** for it (narratorr → Settings → API). You
-  connect to it *after* first boot, in narratorr-requests's Settings page.
+- A **running narratorr instance** and an **API key** for it (narratorr → Settings → Security).
+  You connect to it *after* first boot, in narratorr-requests's Settings page.
 - A **session secret** for production (`openssl rand -hex 32`).
 
 ## Docker (recommended)
@@ -88,16 +88,23 @@ correct owner.
 Open **http://localhost:3000**. The first user to sign in becomes the admin — continue to
 [First boot](#first-boot).
 
-### Zero-config smoke test
+### Quick smoke test
 
-To just confirm the image runs, start it with no configuration:
+To just confirm the image runs, start it in dev-bypass mode:
 
 ```bash
-docker run --rm -p 3000:3000 narratorr/narratorr-requests:latest
+docker run --rm -p 3000:3000 \
+  -e NODE_ENV=development \
+  -e AUTH_BYPASS=1 \
+  -e ALLOW_INSECURE_AUTH_BYPASS=1 \
+  narratorr/narratorr-requests:latest
 ```
 
-Out of the box it boots in **`AUTH_BYPASS` mode** (a seeded dev admin, every request is that
-admin) so you land straight in the UI. `GET /api/health` reports readiness (it pings the DB and
+The image defaults to `NODE_ENV=production` and binds `0.0.0.0`, so the smoke test opts into
+bypass explicitly: `AUTH_BYPASS=1` seeds a dev admin (every request is that admin, so you land
+straight in the UI) and `ALLOW_INSECURE_AUTH_BYPASS=1` acknowledges the non-loopback bind. (A
+bare `docker run` with no environment exits immediately with `SESSION_SECRET is required in
+production` — by design.) `GET /api/health` reports readiness (it pings the DB and
 reports `narratorrConfigured`), and the container ships a matching `HEALTHCHECK`. Configure
 narratorr in Settings to actually request anything.
 
@@ -125,8 +132,10 @@ not the environment — so the env surface is deliberately just server + auth + 
 | `BOOTSTRAP_ADMIN` | — | Pin admin to `<provider>:<subjectOrUsername>`; disables first-user-auto-admin. |
 | `TRUSTED_PROXIES` | off | Trust `X-Forwarded-*` for the real client IP behind a reverse proxy (for rate-limit keying). |
 | `BIND_HOST` | `127.0.0.1` | Listen interface (the Docker image sets `0.0.0.0`). |
-| `DATABASE_PATH` | `/data/narratorr-requests.db` (image) | libSQL database file. |
+| `CORS_ORIGIN` | `http://localhost:5173` (dev) | Allowed browser origin for API calls — set it to your public URL in production. |
+| `DATABASE_PATH` | `/data/narratorr-requests.db` (image) | libSQL database file. Source installs default to `./narratorr-requests.db` resolved against the app root (not your current directory). |
 | `PORT` | `3000` | HTTP port. |
+| `INSTANCE_BADGE` | — | Display-only badge for a secondary instance (e.g. `dev`): tints the browser-tab favicon violet and prefixes the title (`[dev] Requests`) so the tab is distinguishable from prod. Unset = no change. |
 
 The default request quota is **not** an environment variable — it's admin-editable in
 [Settings](/narratorr-requests/configuration/#general--public-url--default-quota) so it can change
@@ -169,9 +178,10 @@ Behavior:
 - The file's contents are **trimmed** (a trailing newline from `echo`/editors won't corrupt the
   value).
 - `<NAME>_FILE` **takes precedence** over the plain `<NAME>` if both are set.
-- An explicitly-set `_FILE` that's **unreadable or empty** fails fast at startup, naming the
-  variable and path — never the file contents — rather than silently falling back to an empty
-  secret.
+- An explicitly-set `_FILE` that's **unreadable** fails fast at startup, naming the variable and
+  path — never the file contents. For `SESSION_SECRET_FILE` / `SETTINGS_KEY_FILE` an **empty**
+  file also fails fast rather than silently yielding an empty secret; for
+  `OIDC_<ID>_CLIENT_SECRET_FILE` an empty file means "no client secret" (that one's optional).
 - Fully **additive**: leave `_FILE` unset and behavior is unchanged from a plain env var.
 
 ## First boot
@@ -189,6 +199,10 @@ Behavior:
 
 4. Optionally add a **notifier** (ntfy, email, Discord, Slack, Telegram, Pushover, Gotify, or a
    generic webhook) so you're pinged about new requests, signups, and failed requests.
+
+5. If your narratorr keeps **companion EPUBs**, optionally turn on
+   [eBook support](/narratorr-requests/configuration/#ebooks) so users can download them or send
+   them to a Kindle.
 
 </Steps>
 

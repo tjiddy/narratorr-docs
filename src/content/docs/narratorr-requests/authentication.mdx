@@ -11,8 +11,11 @@ or both sign-in methods.
 
 ## Local email + password
 
-On by default (`LOCAL_AUTH=true`). Email is both the login and the contact address; passwords are
-hashed with scrypt and compared in constant time.
+On by default (`LOCAL_AUTH=true`). Email is the login, and starts out as the contact address —
+the contact email is separately editable afterwards in the account modal (click your username)
+without affecting how you sign in. Passwords are hashed with scrypt and compared in constant
+time. For OIDC users the contact email is backfilled from provider claims on login; a manually
+saved address wins over later claims, and clearing it re-enables the backfill.
 
 - Users **Create account** / **Sign in** from the login page.
 - Passwords must be **8–200 characters**.
@@ -24,7 +27,8 @@ Set `LOCAL_AUTH=false` to run pure-OIDC.
 ## OIDC providers
 
 List provider ids in `OIDC_PROVIDERS` (comma-separated), then configure each id `<ID>` with
-`OIDC_<UPPERCASE_ID>_*` variables. Each provider gets its own login button and a callback at
+`OIDC_<UPPERCASE_ID>_*` variables. Ids must be lowercase letters/digits/underscores (so
+`pocketid`, not `pocket-id`) — an invalid or duplicate id fails at startup. Each provider gets its own login button and a callback at
 **`/api/auth/oidc/<id>/callback`**. Plex (via a bridge), Authelia, Authentik, Keycloak, Pocket-ID,
 and Google are all just provider instances — there's no special-casing.
 
@@ -88,15 +92,18 @@ The gate is enforced both client-side and server-side (a pending account's API c
    so flipping a smoke instance to real auth still lets your first real user claim admin.)
 
 2. **Pin it instead with `BOOTSTRAP_ADMIN`.** Set `BOOTSTRAP_ADMIN=<provider>:<subjectOrUsername>`
-   (e.g. `authelia:todd` or `plex:myplexuser`) to make exactly that identity admin + active and
-   leave everyone else `pending`. This **disables** first-user-auto-admin.
+   (e.g. `authelia:todd`, `plex:myplexuser`, or `local:you@example.com`) **before that identity's
+   first sign-in** to make exactly that identity admin + active and leave everyone else `pending`.
+   This **disables** first-user-auto-admin. The grant applies when the account is *created* —
+   setting it later won't promote an existing account (or demote an existing admin); fix those on
+   the **Users** page.
 
 </Steps>
 
 :::caution[Public / open IdPs]
-If your IdP lets strangers self-register, **always set `BOOTSTRAP_ADMIN`** — otherwise the first
-stranger to sign in would grab admin. On an open IdP, pin by the stable **subject** rather than a
-user-changeable username (e.g. `google:10876…`).
+If your IdP lets strangers self-register, **always set `BOOTSTRAP_ADMIN` before you expose the
+instance** — otherwise the first stranger to sign in would grab admin. On an open IdP, pin by the
+stable **subject** rather than a user-changeable username (e.g. `google:10876…`).
 :::
 
 ## Behind a reverse proxy
@@ -114,5 +121,6 @@ sticky sessions (a shared store is a future enhancement).
 ## `AUTH_BYPASS` (development only)
 
 `AUTH_BYPASS=1` seeds a dev admin and makes every request that admin — no login at all. It's
-refused in production and on non-loopback binds (unless `ALLOW_INSECURE_AUTH_BYPASS=1`). Use it to
-kick the tires locally; never on anything reachable by others.
+refused outright in production (no escape hatch), and refused on a non-loopback bind unless you
+also set `ALLOW_INSECURE_AUTH_BYPASS=1`. Use it to kick the tires locally; never on anything
+reachable by others.

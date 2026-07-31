@@ -1,27 +1,30 @@
 ---
 title: Using narratorr-requests
-description: Search, request, and track audiobooks — plus the admin queue and user management.
+description: Search, request, and track audiobooks — plus companion eBooks, the admin queue, and user management.
 ---
+
+import { Steps } from '@astrojs/starlight/components';
 
 ## Searching
 
 The **Request** page is the catalog search. Type a title, author, or series and press **Search**
-(search runs on submit, not per-keystroke — each query hits narratorr's metadata provider).
+(search runs on submit, not per-keystroke — each new query round-trips to narratorr's metadata
+provider; repeats are served from a short shared cache).
 
 Each result card shows the cover, title, author(s), narrator(s), and series (with position). A
 badge tells you where the book stands, **most-actionable state wins**:
 
 | Badge | Meaning |
 |-------|---------|
-| **In library** | narratorr already has it imported — nothing to do. |
-| **On the way** | narratorr is already acquiring it (no duplicate request offered). |
+| **In library** | narratorr already has it imported — nothing to request. If the book has a companion eBook, a green **Get eBook** button appears too (see [eBooks](#ebooks-download-or-send-to-kindle)). |
 | *(your request's status)* | You've already requested it — shows Requested / Approved / Processing / Available / etc. |
+| **On the way** | narratorr is already acquiring it for someone else (no duplicate request offered). |
 | **Request** button | Not owned and not yet requested — request it. |
 
 :::note
 If narratorr isn't connected yet, search shows a "not connected yet" notice — an admin needs to
 configure it in [Settings](/narratorr-requests/configuration/). Searching very rapidly can hit a
-short per-user rate limit ("Too many searches — slow down a moment"); just wait a beat.
+short per-user rate limit ("Too many searches — slow down a moment."); just wait a beat.
 :::
 
 ## Requesting a book
@@ -58,12 +61,80 @@ few seconds), so you'll see a request move through its stages without refreshing
 | **Requested** | Awaiting admin review. |
 | **Approved** | Approved; handoff to narratorr pending/in-flight. |
 | **Processing** | narratorr is searching / downloading / importing it. |
-| **Available** | Imported into the library — done. |
+| **Available** | Imported into the library — done. If the book has a companion eBook, a **Get eBook** button appears on the row. |
 | **Denied** | An admin declined it (the reason, if given, is shown). |
 | **Failed** | The acquisition failed (the reason, if known, is shown). |
 
-The list is read-only — there's no cancel or retry. A denied or failed book can simply be
-requested again from search.
+There's no cancel or retry — a denied or failed book can simply be requested again from search.
+If you haven't requested anything yet, the empty page offers a **Browse audiobooks** button
+straight to search.
+
+## eBooks: download or Send to Kindle
+
+If your library keeps **companion EPUBs** alongside its audiobooks (and eBook support is enabled
+on both sides — see [Configuration](/narratorr-requests/configuration/#ebooks)), a book that's
+**In library** grows a green **Get eBook** button: on its search card, and on your **My
+Requests** row once the request is **Available**. An imported book *without* a companion shows a
+muted **No eBook** pill on search cards; a book still on the way shows no eBook action until it's
+imported.
+
+**Get eBook** opens a sheet with the book, an **EPUB** badge and its size, and two actions —
+whichever is ready for you is the highlighted primary:
+
+- **Download eBook** — downloads the EPUB through narratorr-requests (your browser never talks
+  to narratorr directly). Rapid downloads hit a short per-user rate limit.
+- **Send to Kindle** — emails the EPUB to your Kindle address. It's ready once an admin has set
+  a [Kindle sender](/narratorr-requests/configuration/#kindle-sender) *and* you've saved a Kindle
+  address; until then the button renders disabled with the reason.
+
+**Send** results — success or failure — appear inside the sheet (a failed download surfaces as a
+toast instead). On a successful send you'll see **"Sent to Amazon"** — allow a few minutes for
+Amazon to convert and deliver it to your device. Sends are rate-limited (three starts a minute,
+10 accepted per day, per user), re-sending the same book within a minute just returns the
+earlier result, and a book over Amazon's **25 MiB** personal-document cap can't be emailed — the
+sheet tells you to download it instead.
+
+### Setting up Send to Kindle (one-time)
+
+<Steps>
+
+1. **Add your Kindle address** in the account modal (click your username) — the **Kindle
+   address** field under **eBooks**. Find yours in Amazon under **Devices → your Kindle →
+   Email**. It must be the `@kindle.com` address (the `@free.kindle.com` variant isn't
+   accepted).
+
+2. **Approve the sender at Amazon.** Amazon only accepts personal documents from addresses on
+   your **Approved Personal Document E-mail List** — and what you approve is the app's **sender
+   address** (shown in the account modal and on the send sheet), *not* your own Kindle address
+   (that's where books arrive). In Amazon: **Account → Content & Devices → Preferences →
+   Personal Document Settings → Approved Personal Document E-mail List → "Add a new approved
+   e-mail address"**, then enter the sender mailbox.
+
+</Steps>
+
+Once per Amazon account — after that, sending is one click. Your Kindle address is private to
+you; admins can't see or edit it.
+
+## Your account
+
+Clicking your **username** in the header opens the account modal, in two groups:
+
+**Audiobooks**
+
+- **Email** — your contact address, with a **Save** button. For local-auth users it starts as
+  your login email; for OIDC users it's backfilled from your provider (and anything you set here
+  survives future logins — clearing it re-enables the provider backfill).
+- **Email me when my request is** — three opt-in checkboxes: **approved**, **denied** (includes
+  the admin's reason, when given), and **ready to listen**. Checkboxes apply instantly; they
+  render disabled (with an explanation) until you've saved an email above **and** an admin has
+  configured an Email (SMTP) notifier.
+
+**eBooks** — shown only when eBook support is on:
+
+- **Kindle address** — where Send to Kindle delivers, with its own **Save**. Must end in
+  `@kindle.com`; clear it to remove it. Below the field, **"Approve the sender at Amazon"**
+  expands the one-time allowlist walkthrough (see
+  [Setting up Send to Kindle](#setting-up-send-to-kindle-one-time)).
 
 ## Admin: the Queue
 
@@ -74,30 +145,30 @@ review queue). On a pending request:
   it moves to Processing.
 - **Deny** → optionally enter a reason (the requester sees it), then confirm.
 
-Approvals are claimed atomically, so two admins can't both act on the same request — the second
-gets a "not pending" notice.
+Decisions — approve *or* deny — are claimed atomically, so two admins can't both act on the same
+request; the second gets a "not pending" notice.
 
 ## Admin: Users
 
 The **Users** page manages accounts (sorted pending → active → rejected, with a banner counting
-who's awaiting approval). Per user you can:
+who's awaiting approval). On the list you can **Approve / Reject** a pending account and
+**Make admin / Demote** — *disabled on your own row* (you can't change your own role or status,
+so the last admin can't lock themselves out). Reject is durable and re-approvable later; from a
+user's **detail page** you can also reject an *active* user to revoke their access.
 
-- **Approve / Reject** a pending account (reject is durable; you can re-approve later).
-- **Promote / Demote** admin — *disabled on your own row* (you can't change your own role or
-  status, so the last admin can't lock themselves out).
-- Set a **per-user request quota** — one of four explicit modes, not a blank/number toggle:
+The rest lives on that detail page (click the username), alongside their request history:
+
+- **Request quota** — one of four explicit modes, not a blank/number toggle:
 
   | Mode | Effect |
   |------|--------|
-  | **Inherit** | No override — follows the app-wide default (see [Configuration](/narratorr-requests/configuration/#general--public-url--default-quota)). |
+  | **Use app default** | No override — follows the app-wide default (see [Configuration](/narratorr-requests/configuration/#general--public-url--default-quota)). |
   | **Unlimited** | No cap for this user, even if the app default is limited. |
-  | **Limit requests** | A custom positive cap for just this user, on the same rolling window. |
+  | **Custom limit** | A custom positive cap for just this user, on the same rolling window. |
   | **Blocked** | A hard admin denial — the user can't request at all, distinct from "a cap of zero." |
 
-- Toggle **auto-approve** — that user's requests skip the pending queue (they still count against
-  their quota, unless blocked). Admins always auto-approve.
-
-Each user's detail page also lists their full request history.
+- **Auto-approve requests** — that user's requests skip the pending queue (they still count
+  against their quota, unless blocked). Admins always auto-approve.
 
 :::tip[Admins are exempt]
 The admin role bypasses the approval queue, the request quota, and always auto-approves — handy
