@@ -1,0 +1,47 @@
+---
+title: Ebooks
+description: Show and download EPUBs stored alongside your audiobooks.
+---
+
+Narratorr can surface an ebook you keep beside an audiobook — an EPUB in the book's library folder — on that book's page, ready to download. Narratorr doesn't search for or download ebooks itself: you place the file, Narratorr shows it.
+
+## Enabling Ebook Support
+
+Go to **Settings > General** and turn on **Enable ebook support** in the **Ebooks** section. Default: off.
+
+Enabling it also exposes your ebooks over the [Public API](/configuration/api/) — that's how [narratorr-requests](/narratorr-requests/) offers **Download** and **Send to Kindle** to your family.
+
+## Where the File Goes
+
+Drop a single `.epub` directly into the book's library folder, next to the audio files:
+
+```
+Author Name/
+  Book Title/
+    Book Title.m4b
+    Book Title.epub
+```
+
+- The file must sit at the **top level** of the book's folder — EPUBs inside subfolders aren't picked up
+- The `.epub` extension is matched case-insensitively; hidden (dot-prefixed) files are ignored
+- Imports copy audio only, so an EPUB that arrives with a download never lands in the library on its own — you place it there yourself
+
+## The Ebook Panel
+
+With the feature on, each imported book's detail page gets an **Ebook** panel. What it shows depends on what's in the folder:
+
+| State | What you see |
+|-------|--------------|
+| Available | The filename, its size, and a chapter count (when the EPUB's table of contents is readable). No badge — the download icon in the panel header serves the file. |
+| **None** | No EPUB in the folder yet. Drop one in and rescan. |
+| **N found** | More than one EPUB in the folder. Pick the one that belongs to this book and click **Use this one**. |
+| **Not readable** | The file isn't a valid EPUB, with a plain-language reason (incomplete file, damaged archive, and so on). Replace the file and re-check. |
+| **DRM-protected** | The file's chapters are encrypted. You can still download it from the panel header, but Narratorr won't remove DRM, so it can't be sent to Kindle and isn't offered over the API. |
+
+### Re-Checking
+
+The panel header has a **Re-check ebook** arrow in every state. It re-judges just the ebook — a newly dropped file, a replaced one, or a deleted one shows up after a re-check, without re-probing the book's audio. The book's full **Refresh & Scan** picks up ebook changes too.
+
+:::note
+A file that's still copying can briefly show as **Not readable**. Wait for the copy to finish, then re-check.
+:::

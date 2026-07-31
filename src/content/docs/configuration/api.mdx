@@ -128,7 +128,7 @@ Each result book exposes:
 | `series` | object? | `{ name, position? }` — present only when the result belongs to a series. |
 | `cover` | string? | Cover image URL. |
 | `publishedDate` | string? | |
-| `library` | object? | Cross-reference: present **only** if this ASIN is already in your library. `{ bookId, status }` — the `bk_` id and its current [status](#book-status-values). |
+| `library` | object? | Cross-reference: present **only** if this ASIN is already in your library. `{ bookId, status, companionEbook }` — the `bk_` id, its current [status](#book-status-values), and [companion-ebook availability](#companion-ebooks) (`null` when there's nothing to download). |
 
 The `library` field is the quick way to tell, in a search UI, which results you already own. A no-match search returns `{ "data": [], "total": 0 }` with a `200`, never a `404`.
 
@@ -147,7 +147,7 @@ curl -H "X-Api-Key: your-api-key" \
       "narrators": [{ "name": "Ray Porter" }],
       "cover": "https://m.media-amazon.com/images/I/...jpg",
       "publishedDate": "2021-05-04",
-      "library": { "bookId": "bk_3Qp9z...", "status": "imported" }
+      "library": { "bookId": "bk_3Qp9z...", "status": "imported", "companionEbook": null }
     }
   ],
   "total": 1
@@ -186,6 +186,7 @@ The book DTO (returned by both endpoints, and by the add-by-ASIN endpoint below)
 | `narrators` | array | `{ id, name }` per narrator — `id` is an `nr_` reference. |
 | `series` | object? | `{ name, position }` (position may be `null`), or `null` when the book has no series. |
 | `status` | string | Current [lifecycle status](#book-status-values). |
+| `companionEbook` | object? | [Companion-ebook availability](#companion-ebooks). Always present — `{ format, sizeBytes }` when an EPUB is available to download, `null` otherwise. |
 
 ```json
 {
@@ -194,7 +195,8 @@ The book DTO (returned by both endpoints, and by the add-by-ASIN endpoint below)
   "authors": [{ "id": "au_7Kx2m...", "name": "Andy Weir" }],
   "narrators": [{ "id": "nr_Lp4Vn...", "name": "Ray Porter" }],
   "series": null,
-  "status": "imported"
+  "status": "imported",
+  "companionEbook": null
 }
 ```
 
@@ -243,6 +245,25 @@ The `409` conflict body:
   "existingId": "bk_3Qp9z..."
 }
 ```
+
+## Companion ebooks
+
+When ebook support is enabled (see [Ebooks settings](/configuration/settings/#ebooks)) and an imported book has an EPUB stored alongside its audio files, the API advertises it and serves the file through a dedicated endpoint. This is the surface [Narratorr Requests](/narratorr-requests/) builds its **Get eBook** feature on.
+
+Availability is advertised via the `companionEbook` field — on the [book DTO](#get-apiv1booksid) and on the metadata-search [`library` cross-reference](#get-apiv1metadatasearch). The field is always present and nullable: `{ format, sizeBytes }` when an EPUB is available to download (`format` is always `"epub"`; `sizeBytes` is the file size in bytes), or `null` whenever there's nothing to download — the feature is off, the book isn't imported, or no usable EPUB is stored with it.
+
+### `GET /api/v1/books/:id/companion-epub`
+
+Streams the book's companion EPUB (`Content-Type: application/epub+zip`, sent as an attachment).
+
+| Status | Body | Meaning |
+|--------|------|---------|
+| `200` | EPUB bytes | The file. |
+| `409` | Error envelope, code `companion_epub_disabled` | Ebook support is disabled. |
+| `404` | Error envelope, code `companion_epub_unavailable` | Nothing to serve. Deliberately covers **every** other negative — unknown id, book without an ebook, file missing on disk — the endpoint never distinguishes them. |
+| `503` | Error envelope, code `companion_epub_busy` | All download slots are in use. Streams are capped at 4 concurrent; a saturated server answers immediately rather than queueing. Retry shortly. |
+
+The error codes on this endpoint are lowercase (`companion_epub_*`) and stable — branch on the code, not the message.
 
 ## Authors, narrators & series
 
@@ -294,7 +315,7 @@ The download DTO:
 | `pipelineStage` | string | Narratorr's processing overlay: `idle`, `checking`, `pending_review`, `importing`, `imported`. |
 | `book` | object? | `{ id }` — the linked book's `bk_` id, or `null` if the download has no associated book. |
 | `protocol` | string | `torrent` or `usenet`. |
-| `progress` | number | Download progress (0–100). |
+| `progress` | number | Download progress as a fraction from `0` to `1` — multiply by 100 for a percentage. |
 | `addedAt` | string | ISO 8601. |
 | `completedAt` | string? | ISO 8601, or `null` if not yet complete. |
 | `errorMessage` | string? | Error detail, or `null`. |
@@ -310,7 +331,7 @@ The download DTO:
   "pipelineStage": "importing",
   "book": { "id": "bk_3Qp9z..." },
   "protocol": "usenet",
-  "progress": 100,
+  "progress": 1,
   "addedAt": "2026-06-22T14:30:00.000Z",
   "completedAt": "2026-06-22T14:52:11.000Z",
   "errorMessage": null
@@ -382,6 +403,26 @@ curl -X POST -H "X-Api-Key: your-api-key" -H "Content-Type: application/json" \
   "http://your-narratorr-host:3000/api/v1/books/bk_3Qp9z.../grab"
 ```
 
+## Capabilities
+
+### `GET /api/v1/capabilities`
+
+Feature discovery — ask what this Narratorr supports before relying on it. Returns a single object (not a list):
+
+```json
+{ "companionEpub": { "enabled": true } }
+```
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `companionEpub.enabled` | boolean | Whether [companion ebook](#companion-ebooks) support is switched on. |
+
+The endpoint fails closed: if the server can't read its settings, it reports `{ "enabled": false }` rather than returning an error.
+
+:::note
+Probe **with a valid API key** and branch on the status code. A Narratorr too old to have this endpoint answers `404` — treat that as "unsupported". Authentication runs before routing, so a keyless probe gets `401` on every version; `401` means an auth problem, never "unsupported".
+:::
+
 ## System
 
 ### `GET /api/v1/system`
@@ -404,7 +445,7 @@ curl -H "X-Api-Key: your-api-key" \
 ```json
 {
   "version": "1.0.0",
-  "commit": "1a2b3c4",
+  "commit": "1a2b3c4d",
   "buildTime": "2026-06-30T12:00:00.000Z",
   "nodeVersion": "v24.0.0",
   "os": "Linux 5.10.0"

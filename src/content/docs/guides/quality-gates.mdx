@@ -17,7 +17,7 @@ Configure in **Settings > Search** (Quality section).
 |---------|-------------|
 | **Grab Floor** (MB/hr Grab Minimum) | Minimum quality in MB/hour. Releases below this are filtered out of search results and RSS matches. Set to `0` to disable. Default: 0. |
 | **Min Seeders** | Minimum seeders for torrent releases. Releases with fewer seeders are filtered out. Set to `0` to disable. Default: 1. |
-| **Min Download Size** (MB) | Minimum download size in MB. Filters out tracker-test uploads and single-track previews. Set to `0` to disable. Default: 0. |
+| **Min Download Size** (MB) | Minimum download size in MB. Filters out tracker-test uploads and single-track previews out of the box. Set to `0` to disable. Default: 50. |
 | **Max Download Size** (GB) | Maximum download size in GB. Releases above this are filtered out. Set to `0` to disable. Default: 5 (not unlimited). |
 
 ### Filtering
@@ -27,7 +27,7 @@ Configure in **Settings > Search** (Filtering section).
 | Setting | Description |
 |---------|-------------|
 | **Languages** | Multi-select. Releases in unselected languages are excluded; results with no detected language pass through. Deselect all to disable. Default: English. |
-| **Minimum Duration** (minutes) | Filters out releases shorter than this — useful for dropping promo excerpts and TTS samples. Set to `0` to disable. Default: 0. |
+| **Minimum Duration** (minutes) | Filters metadata search results (the book candidates shown when searching for or adding a book) shorter than this — useful for dropping promo excerpts and TTS samples. It does not filter indexer release results. Set to `0` to disable. Default: 30. |
 | **Reject Words** | Comma-separated words. A release is excluded if any of these words is matched. Defaults out of the box to `Virtual Voice, Free Excerpt, Sample, Behind the Scenes, Abridged`. |
 | **Required Words** | Comma-separated words. A release must contain at least one of these words to be eligible. Empty by default (allows all). |
 
@@ -64,7 +64,7 @@ When you search for a book (manually or via the scheduled search job), results p
 8. **Min download size** filter removes too-small releases
 9. **Max download size** filter removes too-large releases
 10. Results are partitioned by the **language** filter
-11. Remaining results are ranked by quality (MB/hour), with protocol preference as a tiebreaker
+11. Remaining results are ranked in canonical order: match score, then narrator match (when **Search Priority** is Narrator Accuracy), then quality (MB/hour), with protocol preference, language, indexer priority, grabs, and seeders as successive tiebreakers
 
 The same pipeline applies to RSS feed matches.
 
@@ -90,16 +90,17 @@ After a download completes, Narratorr probes the audio files and makes a decisio
 |----------|------|--------------|
 | **Auto-import** | First download for a book (no existing files), or a new download with better MB/hour than existing | Proceeds to import. A first download is imported without a quality comparison, provided no hold reasons fired. |
 | **Auto-reject** | Quality is same or worse than existing | Release is blacklisted and a fresh search is started. Files are deleted only when **Delete after import** is enabled (off by default). |
-| **Hold for review** | Narrator mismatch, duration off by >15%, no quality data to compare, or probe failure | Held in `pending_review` status for your decision |
+| **Hold for review** | Narrator mismatch, duration more than 4 minutes off from the existing copy, no quality data to compare, or probe failure | Held in `pending_review` status for your decision |
 
 ### Hold Reasons
 
 | Reason | Meaning |
 |--------|---------|
 | `narrator_mismatch` | The download's narrator tag doesn't match the book's expected narrator |
-| `duration_delta` | Duration differs from expected by more than 15% — could indicate an abridged version or wrong content |
+| `duration_delta` | Duration differs from the existing copy by more than 4 minutes (240 seconds) — could indicate an abridged version or wrong content |
 | `no_quality_data` | The existing files' quality (MB/hour) couldn't be computed, so there's nothing to compare the new download against. (A true first download — no files on disk — auto-imports without a comparison instead.) |
 | `probe_failed` | Couldn't read the audio files to determine quality |
+| `unreadable_codec` | Audio files were found, but no readable codec could be determined — unsupported or corrupt format |
 | `imported_book_replacement` | This book is already imported; the new grab is held so you can confirm the replacement |
 | `unhandled_error` | An unexpected error occurred during evaluation |
 

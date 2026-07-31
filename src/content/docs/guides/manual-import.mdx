@@ -13,7 +13,7 @@ Access it from the **Library Actions** menu on the Library page and choose **Imp
 
 Enter or browse to a directory containing audiobook folders. The directory should have subfolders for each book (e.g., organized as `Author/Title` or similar).
 
-Click the **Browse** button to open the directory browser, which lets you navigate the filesystem visually. The browser also offers **Favorite Folders** and **Recent Folders** lists so you can quickly return to directories you use often.
+Click the **Browse** button to open the directory browser, which lets you navigate the filesystem visually. Below the path input, the page also offers **Favorite Folders** and **Recent Folders** lists so you can quickly return to directories you use often.
 
 Manual Import is for folders **outside** your library path. If you point it at a folder inside the library path, scanning is blocked and Narratorr links you to the separate **Library Import** flow, which registers existing books in place.
 
@@ -32,16 +32,27 @@ Each card shows:
 | **Matched** | Confident metadata match found — ready to import |
 | **Review** | Partial match — you may want to verify or edit the metadata |
 | **No Match** | No metadata match found — edit to provide correct details |
-| **Already in library** | A matching book already exists in your library — starts unchecked, but can still be force-imported |
-| **Duplicate in scan** | Another folder in the same scan resolves to this book — starts unchecked, but can still be force-imported |
+| **Already owned** | A matching book already exists in your library — starts unchecked, but can still be force-imported. The summary bar counts these as "already in library" |
 
-With [multiple editions](/guides/editions/), **Already in library** means the same *recording* is already owned — a different recording of a book you own (a full-cast vs. an unabridged, say) is not flagged and imports into its own edition folder. A book narratorr can't confidently classify is held for review (see below) rather than imported or skipped.
+With [multiple editions](/guides/editions/), **Already owned** means the same *recording* is already owned — a different recording of a book you own (a full-cast vs. an unabridged, say) is labeled **New version of an owned title** instead and imports into its own edition folder. A book narratorr can't confidently classify is held for review (see below) rather than imported or skipped.
+
+Folders in the same scan that resolve to the same book are not flagged at scan time — they start selected and are matched normally. Duplicate resolution happens at import time instead: a second copy of the same recording is skipped, and an ambiguous one is held for review.
 
 You can:
 
 - **Select/deselect** individual books or use "select all"
 - **Edit** any book's metadata — title, author, narrator, series info
 - Choose from **alternative matches** if the auto-match wasn't right
+
+#### While matching runs
+
+Matching happens in the background after the scan — each card shows a spinning **Matching** badge until its result arrives, and you can review and edit already-matched books while the rest resolve.
+
+If the match phase hits a problem it can't recover from, matching pauses rather than failing silently: a **Matching paused** banner reports how many books are still without a result, with two actions. **Resume remaining** re-matches only the books that never got a result (finished matches are kept), and **Restart all** starts matching over from scratch.
+
+While paused, the **Import** button stays disabled on Manual Import until matching resumes or completes. The Library Import flow is more permissive: pending rows read **Paused** (the summary bar counts them the same way), and deselecting them lets you import the already-matched subset right away — the page stays put afterwards so you can still resume the remainder.
+
+When an import finishes, the outcome is reported truthfully — books that couldn't be imported are never rolled into a green success message. Skips are called out with their reason ("already in your library", "already being imported"), failures surface as errors, and a partial import stays on the page with the imported books deselected, so what's left is what still needs attention.
 
 ### Step 3: Import
 
@@ -56,9 +67,11 @@ Click **Import** to process all selected books. Narratorr moves/copies each book
 
 **Editions and held-for-review.** A different recording of a book you already own is imported alongside it in a separate [edition folder](/guides/editions/) — the existing recording is never overwritten. If narratorr can't confidently classify a book (same recording, or different?), it's held for review: after the import runs, held books appear in a review panel where you can re-confirm them or force the import. Forcing bypasses the duplicate check but never overwrites files on disk.
 
+**After the run.** Every import run leaves a durable report: the import page shows a last-import panel summarizing the run, and the full record lives under **Activity > History > Import History**, with per-run counts for imported, held, skipped, and failed books. Runs that need attention (held or failed books) also surface a banner on the Library page that deep-links back to the report.
+
 ## Tips
 
 - Point to a parent folder containing multiple book subfolders — Narratorr discovers each one
-- Books that already exist in your library (or appear more than once in the scan) are flagged and start unchecked, but you can still select them to force-import
+- Books that already exist in your library are flagged and start unchecked, but you can still select them to force-import. Folders that appear more than once in the same scan are matched normally and de-duplicated at import time
 - Unmatched books can still be imported after manually entering the metadata
-- Use the **Favorite Folders** and **Recent Folders** lists in the browser to jump back to directories you scan often
+- Use the **Favorite Folders** and **Recent Folders** lists below the path input to jump back to directories you scan often

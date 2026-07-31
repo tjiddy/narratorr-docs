@@ -18,7 +18,7 @@ When a book arrives (via download, manual import, or an import list) and you alr
 |--------|---------------|
 | ASIN | An exact ASIN match (case-insensitive) is the same recording. A *different* ASIN does **not** automatically mean a different recording — the same reading is often sold under several ASINs, so narratorr falls through to the narrator and duration signals. |
 | Narrators | The primary discriminator. A `Full Cast` and a `Jim Dale` reading are different recordings; the same narrator set points at the same recording. |
-| Duration | A corroborator only. Two copies of the same reading run about the same length; a difference beyond ~15% downgrades an otherwise-equal match to *review* (the abridged-vs-unabridged case). |
+| Duration | A corroborator only. Two copies of the same reading run about the same length; a difference of more than 4 minutes — an absolute band, not a percentage — downgrades an otherwise-equal match to *review* (the abridged-vs-unabridged case). |
 | Production type | Full cast, dramatized, and the like. When duration can't corroborate, a conflicting production form is held for review rather than merged. |
 
 The outcome is one of three:
@@ -53,6 +53,8 @@ See [Folder Format Tokens](/guides/folder-format/) for the token and its exact b
 ## How editions appear in the library
 
 On the Library page, a book that carries an edition label shows it in amber under the title on its tile — so two same-title recordings render as visually distinct tiles rather than apparent duplicates. The label is hidden on a collapsed series tile: it's per-recording, and would mislabel the group.
+
+The Add Book search distinguishes owning *this* recording from owning *a* recording of the title. An exact ASIN match shows a linked **In Library** badge in place of the Add control — you own that recording. A result that matches an owned *title* without an ASIN match keeps its **Add** button and shows a muted **Edition in library** badge instead, so a different narration of a book you already own stays addable. Adding it runs the same-recording decision above: a different recording is created alongside what you have, while re-adding the recording you own resolves to the existing book.
 
 ## Held for review
 

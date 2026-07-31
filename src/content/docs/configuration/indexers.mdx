@@ -84,9 +84,8 @@ Narratorr has a dedicated adapter for [MyAnonamouse](https://www.myanonamouse.ne
 
 | Field | Description |
 |-------|-------------|
-| **MAM ID** | Your personal MAM session ID (found in your browser cookies after logging in) |
+| **MAM ID** | A dedicated MAM session ID. Generate one under **MAM > Preferences > Security > Create Session** — don't paste the `mam_id` cookie from your logged-in browser; Narratorr expects its own session. |
 | **Attempt to use wedges when downloading** | `Never` (default) or `Prefer`. When set to `Prefer`, Narratorr appends a server-side freeleech flag at download time so MAM spends a personal freeleech wedge on torrents that aren't already freeleech. |
-| **Base URL (optional)** | Only change if using a custom MAM mirror (defaults to `https://www.myanonamouse.net`). |
 
 Once you enter a valid MAM ID, Narratorr probes MAM and displays your account status — username, class, VIP status, available wedges, and exit IP — so you can confirm the session is working before saving.
 

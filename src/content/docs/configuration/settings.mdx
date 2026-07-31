@@ -3,13 +3,13 @@ title: Settings Overview
 description: All Narratorr settings sections and their fields.
 ---
 
-Narratorr's settings are accessible from **Settings** in the sidebar. The sidebar has these tabs: **General**, **Post Processing**, **Indexers**, **Download Clients**, **Search**, **Notifications**, **Connectors**, **Blacklist**, **Security**, **Import Lists**, and **System**. Each tab stacks one or more sections on a single scrolling page.
+Narratorr's settings are accessible from **Settings** in the sidebar. The sidebar has these tabs: **General**, **Audio Tools**, **Post Processing**, **Indexers**, **Download Clients**, **Search**, **Notifications**, **Connectors**, **Blacklist**, **Security**, **Import Lists**, and **System**. Each tab stacks one or more sections on a single scrolling page.
 
 This page documents the settings sections grouped by the tab they live under. Indexers, Download Clients, Notifications, Connectors, Blacklist, Security, and Import Lists have dedicated pages — linked at the bottom.
 
 ## General tab
 
-The General tab stacks the Library, File Naming, Import, Network, Discovery, and Appearance sections.
+The General tab stacks the Library, File Naming, Import, Network, Discovery, Ebooks, Appearance, and Onboarding sections.
 
 ### Library
 
@@ -54,11 +54,23 @@ The General tab stacks the Library, File Naming, Import, Network, Discovery, and
 
 See [Discovery & Recommendations](/guides/discovery/) for details.
 
+### Ebooks
+
+| Setting | Description |
+|---------|-------------|
+| **Enable ebook support** | Show ebooks already stored in a book's folder, ready to download from the book page. Narratorr doesn't search for or download ebooks. Enabling this also exposes them over the API, which is how [Narratorr Requests](/narratorr-requests/) offers Download and Send to Kindle. Default: off. |
+
 ### Appearance
 
 | Setting | Description |
 |---------|-------------|
 | **Dark Mode** | Switch between the light and dark theme. Stored per-browser, not in the database. |
+
+### Onboarding
+
+| Setting | Description |
+|---------|-------------|
+| **Welcome tour** | Re-display the welcome modal that reviews key defaults and feature highlights. |
 
 ## Search tab
 
@@ -105,9 +117,9 @@ Gates which search results survive before quality evaluation.
 | Setting | Description |
 |---------|-------------|
 | **Languages** | Multi-select of languages to allow. Results in unselected languages are excluded; results with no detected language always pass through. Default: English. Deselect all to disable language filtering. |
-| **Minimum Duration** | Minimum runtime (in minutes) a release must have. Filters promo excerpts, TTS knockoffs, and supplementary clips. Default: 0 (disabled). |
-| **Reject Words** | Comma-separated words that exclude a result if matched against its title, subtitle, author, narrator, or format type. Default: `Virtual Voice, Free Excerpt, Sample, Behind the Scenes, Abridged`. |
-| **Required Words** | Comma-separated words — at least one must appear in a result's title for it to be kept. |
+| **Minimum Duration** | Minimum runtime (in minutes) a release must have. Filters promo excerpts, TTS knockoffs, and supplementary clips. Default: 30. Set to 0 to disable. |
+| **Reject Words** | Comma-separated words that exclude a result if matched against its release (NZB) name, raw title, title, author, or narrator. Default: `Virtual Voice, Free Excerpt, Sample, Behind the Scenes, Abridged`. |
+| **Required Words** | Comma-separated words — at least one must appear in a result's release name, raw title, title, author, or narrator for it to be kept. |
 
 ### Quality
 
@@ -117,22 +129,30 @@ Controls the minimum bar a release must clear to be eligible to grab. See [Quali
 |---------|-------------|
 | **MB/hr Grab Minimum** | Minimum quality in MB/hour. Releases below this are hidden. Default: 0 (disabled). |
 | **Minimum Seeders** | Minimum seeders for torrent releases (does not affect Usenet). Default: 1. Set to 0 to disable. |
-| **Min Download Size** | Minimum download size in MB. Filters tracker-test uploads, single-track previews, and corrupt releases. Default: 0 (disabled). |
+| **Min Download Size** | Minimum download size in MB. Filters tracker-test uploads, single-track previews, and corrupt releases. Default: 50. Set to 0 to disable. |
 | **Max Download Size** | Maximum download size in GB. Larger releases are hidden. Default: 5. Set to 0 to disable. |
 
-## Post Processing tab
+## Audio Tools tab
 
-Audio processing requires ffmpeg. In Docker, ffmpeg is pre-installed and auto-detected. For manual installs, install ffmpeg and set its path. There is no master on/off toggle — processing runs only when an ffmpeg path is configured. Merge and convert are manual by default (per-book **Merge** or bulk **Convert**), but the **Merge multi-file downloads** toggle opts completed downloads into an automatic merge after import.
+The Audio Tools tab holds the **Merge & Convert** section — the engine settings applied wherever audio is merged or converted: the per-book **Merge** button, bulk **Convert**, and auto-merge downloads.
+
+Audio processing requires ffmpeg, but there is no path to configure — Narratorr auto-detects the binary (the `FFMPEG_PATH` environment variable if set, then `/usr/bin/ffmpeg`, then the system PATH) and shows the result in a status row at the top of the tab, including the detected version and path. In Docker, ffmpeg is pre-installed and always found. For manual installs, install ffmpeg on the system PATH, or point the `FFMPEG_PATH` environment variable at the binary. There is no master on/off toggle either — merge, convert, and Tag Embedding simply stay off until ffmpeg is detected.
 
 | Setting | Description |
 |---------|-------------|
-| **ffmpeg Path** | Path to the ffmpeg binary. In Docker this is typically `/usr/bin/ffmpeg`. |
 | **Output Format** | Target format: `m4b` or `mp3`. Default: m4b. (MP3 does not support embedded chapter markers.) |
 | **Target Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when "Keep original" is on. |
 | **Keep original** | When on, the source file's bitrate is used instead of the target. Note: files are still re-encoded — this drops the bitrate cap, it is not a lossless copy. Default: on. |
 | **Merge Behavior** | When to merge multi-file downloads into a single chaptered file: `always`, `multi-file-only`, or `never`. Default: multi-file-only. |
 | **Max Concurrent Jobs** | Maximum number of merge jobs that can run simultaneously — manual and automatic merges share this cap. Range: 1–8. Default: 1. |
-| **Merge multi-file downloads** | Automatically merge a completed download's audio files into a single file once it lands in the library. Applies to downloads only — never Library Import or Manual Import. Default: off. |
+
+## Post Processing tab
+
+The Post Processing tab holds the automations that run on their own after a download lands — none run on Library Import or Manual Import. Merge and convert are manual by default (per-book **Merge** or bulk **Convert**), but the **Auto-merge multi-file downloads** toggle opts completed downloads into an automatic merge after import, using the Merge & Convert settings from the Audio Tools tab.
+
+| Setting | Description |
+|---------|-------------|
+| **Auto-merge multi-file downloads** | Automatically merge a completed download's audio files into a single file once it lands in the library. Applies to downloads only — never Library Import or Manual Import. Default: off. |
 | **Post-Processing Script** | Absolute path to a custom script run after each successful import. See [Features Reference](/guides/features/#post-processing-script). |
 | **Script Timeout** | Maximum script execution time in seconds. Required when a script is set. Default: 300. |
 
@@ -149,7 +169,7 @@ See [Audio Processing](/guides/audio-processing/) and [Tagging & Cover Art](/gui
 
 ## System tab
 
-The System tab holds the health dashboard, the Backup Schedule and Backup & Restore sections, system info, the Housekeeping and Logging sections, and scheduled tasks.
+The System tab holds the health dashboard, the Backup Schedule and Backup & Restore sections, system info, the Housekeeping and Logging sections, scheduled tasks, and the Licenses & Third-Party Notices section — attribution and license texts for the FFmpeg binary bundled in the Docker image.
 
 | Setting | Section | Description |
 |---------|---------|-------------|

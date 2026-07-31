@@ -7,7 +7,7 @@ Narratorr can write metadata tags to your audiobook files after import — autho
 
 ## Enabling Tagging
 
-Configure in **Settings > Post Processing** (the tagging controls are at the bottom of that page). Tagging is disabled by default.
+Configure in **Settings > Post Processing** — the tagging controls are in the Post Processing card at the top of that page. Tagging is disabled by default.
 
 | Setting | Description |
 |---------|-------------|
@@ -15,7 +15,7 @@ Configure in **Settings > Post Processing** (the tagging controls are at the bot
 | **Tag Mode** | How tags are written (see below) |
 | **Embed Cover Art** | Embed cover art into audio files as an attached picture |
 
-Tagging requires **ffmpeg** — configure its path in **Settings > Post Processing > ffmpeg Path** (pre-installed in Docker).
+Tagging requires **ffmpeg** (pre-installed in Docker). Narratorr detects it automatically — the detection status is shown in **Settings > Audio Tools**, and there is no ffmpeg path setting in the UI. To force a specific binary, set the [`FFMPEG_PATH` environment variable](/configuration/environment-variables/).
 
 ## Tag Modes
 
@@ -42,7 +42,7 @@ Tagging requires **ffmpeg** — configure its path in **Settings > Post Processi
 | Date | Publication year |
 | Genre | Genre |
 
-The extended fields (series, series part, subtitle, ASIN, publisher, description, date, genre) are the **Audiobookshelf-survivable set** — they're written in the form that survives M4B embedding and is picked up by Audiobookshelf, so your media server sees narratorr's metadata rather than the release's. When writing M4B files, existing **chapter markers are preserved**.
+The extended fields (series, series part, subtitle, ASIN, publisher, description, date, genre) survive MP3 embedding and are picked up by Audiobookshelf, so your media server sees narratorr's metadata rather than the release's. M4B is less forgiving: the container drops series, series part, subtitle, ASIN, and publisher (date, genre, and description survive) — enable the [OPF metadata sidecar](#opf-metadata-sidecar) so Audiobookshelf still sees narratorr's full metadata for M4B files. When writing M4B files, existing **chapter markers are preserved**.
 
 ## Cover Art Embedding
 
@@ -80,4 +80,4 @@ In the preview you can opt individual fields out via checkboxes (for example, ke
 
 When tagging is enabled, it runs automatically as a post-import step: once a download's files are copied into your library, Narratorr writes the tags, then continues with any post-processing script and notifications. It is best-effort — a tagging failure is logged but does not fail the import. If tagging is disabled, files are imported as-is.
 
-Audio processing (merge/convert) is a separate operation, manual by default — the opt-in **Merge multi-file downloads** toggle automates the merge for completed downloads. Either way, tagging does not depend on it.
+Audio processing (merge/convert) is a separate operation, manual by default — the opt-in **Auto-merge multi-file downloads** toggle in **Settings > Post Processing** automates the merge for completed downloads. Either way, tagging does not depend on it.

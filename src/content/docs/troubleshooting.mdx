@@ -80,7 +80,7 @@ Narratorr places files into the library folder — it doesn't notify media serve
 **Symptoms:** Imports succeed but audio processing (merge/convert) fails.
 
 **Check:**
-- **ffmpeg not found** — verify the path in Settings > Post Processing. In Docker, ffmpeg is pre-installed at the default path.
+- **ffmpeg not found** — Narratorr auto-detects ffmpeg; there is no path setting. Check the status row in Settings > Audio Tools, and set the `FFMPEG_PATH` environment variable if you need to force a specific binary. In Docker, ffmpeg is pre-installed and detected automatically.
 - **Unsupported input format** — the source file uses a codec ffmpeg can't decode. Check ffmpeg docs for supported formats.
 - **Disk space** — processing creates temporary files. Ensure sufficient free space in the library directory.
 - **File permissions** — Narratorr must be able to write to the library directory
@@ -92,7 +92,7 @@ Narratorr places files into the library folder — it doesn't notify media serve
 
 **Check:**
 - **Notifier is enabled** — check the toggle in Settings > Notifications
-- **Event is subscribed** — the notifier must be subscribed to the specific event (grab, download complete, import, failure, health issue)
+- **Event is subscribed** — the notifier must be subscribed to the specific event (grab, download complete, import, failure, health issue, import run finished)
 - **Use the Test button** — sends a test payload to verify connectivity
 - **Webhook URL** — verify the URL is correct and reachable from the Narratorr host
 - **Discord webhook** — ensure the webhook hasn't been deleted in Discord server settings
@@ -110,16 +110,16 @@ Narratorr places files into the library folder — it doesn't notify media serve
      - AUTH_BYPASS=true
    ```
 
-2. Restart Narratorr:
+2. Recreate the container so the new environment applies — a plain `docker compose restart` does not pick up compose-file changes, so the bypass would never activate:
    ```bash
-   docker compose restart narratorr
+   docker compose up -d narratorr
    ```
 
 3. Access the UI — authentication is now bypassed
 
 4. Go to **Settings > Security** and fix your auth configuration
 
-5. **Remove `AUTH_BYPASS=true`** from your environment and restart again
+5. **Remove `AUTH_BYPASS=true`** from your environment and run `docker compose up -d narratorr` again — a plain restart would leave the bypass active
 
 :::caution
 Never leave `AUTH_BYPASS=true` in production. It disables all authentication.

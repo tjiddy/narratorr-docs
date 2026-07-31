@@ -87,10 +87,10 @@ For download clients not directly supported, or when you want to manage download
 
 | Field | Default | Description |
 |-------|---------|-------------|
-| **Watch Directory** | — | Directory where Narratorr drops `.torrent` or `.nzb` files |
-| **Protocol** | `torrent` | Whether Narratorr writes `.torrent` or `.nzb` files (Torrent / Usenet) |
+| **Watch Directory** | — | Directory where Narratorr drops `.torrent`, `.magnet` (for magnet-link releases), or `.nzb` files |
+| **Protocol** | `torrent` | Whether this blackhole receives torrent or Usenet releases |
 
-Both fields are required. Narratorr places the release file in the watch directory and immediately marks the download as "completed." It does **not** monitor progress — your external client handles the actual download. Narratorr will attempt to import from the watch folder on the next import cycle.
+Both fields are required. Narratorr places the release file in the watch directory and immediately marks the download as "completed." It does **not** monitor progress — your external client handles the actual download. Narratorr also never imports blackhole downloads on its own: once your external client finishes, bring the files in with a [Manual Import](/guides/manual-import/) (or a library scan, if your client downloads straight into the library folder).
 
 :::caution
 Blackhole mode has no progress tracking. The Activity page will show the download as completed immediately, even though the actual download hasn't finished. Use this only when direct client integration isn't available.

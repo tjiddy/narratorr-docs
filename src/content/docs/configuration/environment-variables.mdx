@@ -20,7 +20,8 @@ Environment variables configure server-level behavior. Most users don't need to 
 | `LOG_LEVEL` | `info` | Initial log verbosity at boot: `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`. The General settings log level overrides this once the server is running. |
 | `MONITOR_INTERVAL_CRON` | `*/30 * * * * *` | Download-monitor poll cadence as a cron expression. Advanced — rarely changed. |
 | `NARRATORR_SECRET_KEY` | (auto-generated) | 32-byte hex string used to encrypt credentials at rest (AES-256-GCM). If not set, a key is auto-generated and saved to `CONFIG_PATH/secret.key` on first run. Set this explicitly if you want the same key across container rebuilds without persisting the config volume. |
-| `AUDIBLE_REGION` | `us` | Fallback region for metadata lookups when not configured in Settings > General. Values: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. |
+| `AUDIBLE_REGION` | `us` | Fallback region for metadata lookups when not configured in Settings > Search (Metadata section). Values: `us`, `ca`, `uk`, `au`, `fr`, `de`, `jp`, `it`, `in`, `es`. |
+| `FFMPEG_PATH` | (unset) | Path to an ffmpeg binary, checked ahead of auto-detection (`/usr/bin/ffmpeg`, then the system PATH). If the binary at this path doesn't run, Narratorr falls back to auto-detection. Only needed for manual installs where ffmpeg isn't on the PATH — the Docker image ships ffmpeg. |
 | `INSTANCE_BADGE` | (unset) | Free-form badge (e.g. `dev`) for a secondary instance: the client recolors the favicon and prefixes the browser-tab title so the instance is distinguishable from production. Unset or blank = no change. |
 
 ## Docker Overrides

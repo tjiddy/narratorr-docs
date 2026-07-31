@@ -11,10 +11,10 @@ Discovery is enabled by default — Narratorr generates suggestions on a configu
 
 | Setting | Description |
 |---------|-------------|
-| **Enabled** | Master toggle for the discovery engine |
-| **Interval** | How often (in hours) to refresh suggestions. Range: 1–168. Default: 24. |
-| **Max Per Author** | Maximum suggestions generated per author. Range: 1–50. Default: 5. Prevents a single prolific author from dominating the feed. |
-| **Expiry Days** | Suggestions expire after this many days if not acted on. Range: 1+. Default: 90. |
+| **Enable discovery** | Master toggle for the discovery engine |
+| **Refresh interval** | How often (in hours) to refresh suggestions. Range: 1–168. Default: 24. |
+| **Max suggestions per author** | Maximum suggestions generated per author. Range: 1–50. Default: 5. Prevents a single prolific author from dominating the feed. |
+| **Suggestion expiry** | Suggestions expire after this many days if not acted on. Range: 1+. Default: 90. |
 
 ## How Scoring Works
 
@@ -48,23 +48,23 @@ If you consistently dismiss genre-based suggestions (more than 80% dismissed wit
 
 ## Series Completion Intelligence
 
-When you own books 1, 2, and 4 of a series, Narratorr notices the gap and suggests book 3 with a boosted score. It also suggests the next book in a series you're actively following.
+When you own books 1, 2, and 4 of a series, Narratorr notices the gap and suggests book 3 at the series base weight. It also suggests the next book after your highest-owned entry — that continuation is the suggestion that earns the +20 series-position bonus.
 
-Series suggestions are flagged with a `series` reason and include context like "Book 3 of The Expanse — you own 1, 2, 4."
+Series suggestions are flagged with a `series` reason and include context like "Next in The Expanse — you have books 1-4"; gap-fill suggestions append the specific position, e.g. "(position 3)".
 
 ## The Discover Page
 
-The Discover page shows your suggestion feed, sorted by score. Each card shows:
+The Discover page shows your suggestion feed, sorted by score. The score drives the ordering but is not displayed on the card. Each card shows:
 
-- Cover art, title, and author
-- Why it was suggested (reason badge)
-- The score
+- Cover art, title, author, and narrator
+- Series and duration tags
+- Why it was suggested (the reason context chip)
 
 ### Actions
 
 | Action | What It Does |
 |--------|-------------|
-| **Add** | Opens a popover that adds the book to your library as "wanted", with an optional **Search immediately** checkbox (defaults to your Quality > Search Immediately setting) |
+| **Add** | Opens a popover that adds the book to your library as "wanted", with an optional **Search immediately** checkbox (defaults to the **Search Immediately** setting under **Settings > Search**, in the When a New Book Is Added section) |
 | **Dismiss** | Removes the suggestion. Feeds into the dismissal tracking system. |
 
 ## Diversity Factor

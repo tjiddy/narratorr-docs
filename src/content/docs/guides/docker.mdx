@@ -53,7 +53,7 @@ In Narratorr's download client settings, set host to `qbittorrent` (the service 
 ### Connecting to Host Services
 
 If a service runs on the host machine (not in Docker):
-- **Linux:** Use `host.docker.internal` (Docker 20.10+) or the host's LAN IP
+- **Linux:** `host.docker.internal` doesn't resolve by default — add `extra_hosts: ["host.docker.internal:host-gateway"]` to the narratorr service (Docker 20.10+) to enable it, or use the host's LAN IP
 - **Windows/macOS:** Use `host.docker.internal` (built-in)
 
 ### Custom Networks
@@ -82,7 +82,7 @@ Narratorr exposes a health check endpoint:
 GET /api/health
 ```
 
-Returns `200 OK` when the server is running. Use this for container orchestration, monitoring, or load balancer health probes.
+Returns `200 OK` when the server is up and its database responds; if the database probe fails, it returns `503` even though the process is still running. Use this for container orchestration, monitoring, or load balancer health probes.
 
 The image already defines its own `HEALTHCHECK` (with a built-in start period), so no manual configuration is needed. If you do want to override it — for example in a load balancer or external monitor — match what the image does so it keeps working under a reverse-proxy subpath:
 
@@ -126,8 +126,8 @@ docker run --rm -v narratorr_config:/config -v $(pwd):/backup alpine \
   tar czf /backup/narratorr-config-$(date +%Y%m%d).tar.gz /config
 ```
 
-:::tip
-Automate backups with a cron job or your preferred backup tool. The SQLite database is safe to copy while Narratorr is running (WAL mode handles concurrent access).
+:::caution
+Copying `narratorr.db` while Narratorr is running is not guaranteed to produce a consistent snapshot — stop the container first if you copy the raw database file. Better: rely on the built-in scheduled backups (**Settings > System**), which use `VACUUM INTO` for a consistent snapshot. The backup zips in `config/backups/` are always safe to copy while running, so an automated copy of `/config` still works — just restore from the zips, not the copied live database. See [Backup & Restore](/guides/backup-restore/).
 :::
 
 ## Environment Variables

@@ -24,6 +24,10 @@ After [installing Narratorr](/getting-started/installation/), you'll configure t
 
    Go to **Settings > General** (the library path is the first section there). Set the path where Narratorr should store your audiobooks. In Docker, this is `/audiobooks` by default (mapped to a host directory via volumes).
 
+   :::note
+   Already have audiobooks in that folder? Register them with [Library Import](/guides/library-import/) — it indexes them in place without touching your files.
+   :::
+
 3. **Add an indexer**
 
    Go to **Settings > Indexers** and add at least one source to search:
@@ -43,8 +47,10 @@ After [installing Narratorr](/getting-started/installation/), you'll configure t
    Go to **Settings > Download Clients** and add your client:
    - [qBittorrent](/configuration/download-clients/#qbittorrent)
    - [Transmission](/configuration/download-clients/#transmission)
+   - [Deluge](/configuration/download-clients/#deluge)
    - [SABnzbd](/configuration/download-clients/#sabnzbd)
    - [NZBGet](/configuration/download-clients/#nzbget)
+   - [Blackhole (watch folder)](/configuration/download-clients/#blackhole-watch-folder)
 
    Click **Test** to verify the connection. See [Download Clients](/configuration/download-clients/) for per-type setup.
 
@@ -54,7 +60,7 @@ After [installing Narratorr](/getting-started/installation/), you'll configure t
 
 6. **Add a book to your library**
 
-   From the search results, select a book to view its details. Click **Add to Library** to track it.
+   From the search results, select a book to view its details. Click **Add to Library** to track it. If you already own a copy, the result carries an **In Library** badge — an exact match links straight to your book, while a [different edition](/guides/editions/#how-editions-appear-in-the-library) keeps the Add path available with a muted "Edition in library" note.
 
 7. **Grab a release**
 
@@ -70,5 +76,6 @@ After [installing Narratorr](/getting-started/installation/), you'll configure t
 If downloads complete but don't import, check:
 - Your library path is correct and writable
 - The download path is accessible to Narratorr (see [Remote Path Mappings](/guides/remote-path-mappings/) for Docker setups)
-- The minimum seed time has been met (for torrents)
+
+See [Troubleshooting](/troubleshooting/#downloads-arent-importing) for the full checklist. (Minimum seed time is not a cause — it only delays when a torrent is removed from your client after import, never the import itself.)
 :::

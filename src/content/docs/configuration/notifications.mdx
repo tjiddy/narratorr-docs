@@ -18,6 +18,7 @@ Configure notifications in **Settings > Notifications**.
 | **On Import** | An audiobook is successfully imported into the library |
 | **On Failure** | A download or import fails |
 | **On Health Issue** | A health check transitions state (e.g. healthy → warning/error) |
+| **Import Run Finished** | A Library or Manual import run completes, with queued/held/skipped/failed counts |
 
 ## Notifier Types
 
@@ -37,6 +38,7 @@ Template variables are substituted into the **Body Template** field (they are no
 
 | Variable | Description |
 |----------|-------------|
+| `{event}` | The event key (e.g. `on_grab`, `import_run_finished`) |
 | `{book.title}` | Book title |
 | `{book.author}` | Book author |
 | `{book.coverUrl}` | Cover art URL |
@@ -53,6 +55,12 @@ Template variables are substituted into the **Body Template** field (they are no
 | `{health.previousState}` | Previous health state (health-issue events only) |
 | `{health.currentState}` | Current health state (health-issue events only) |
 | `{health.message}` | Health check detail message (health-issue events only) |
+| `{submission.source}` | `library` or `manual` (import-run-finished events only) |
+| `{submission.status}` | Import run status (import-run-finished events only) |
+| `{submission.counts.accepted}` | Books queued for import (import-run-finished events only) |
+| `{submission.counts.held}` | Books held for review (import-run-finished events only) |
+| `{submission.counts.skipped}` | Books skipped (import-run-finished events only) |
+| `{submission.counts.failed}` | Books that failed (import-run-finished events only) |
 
 **Example uses:**
 - Trigger an Audiobookshelf library scan after import
@@ -80,6 +88,7 @@ Embeds are color-coded by event:
 - **Green** — import
 - **Red** — failure
 - **Dark orange** — health issue
+- **Green** — import run finished
 
 Cover art thumbnails are included when available.
 

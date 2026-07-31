@@ -7,9 +7,13 @@ This page covers features that don't need a full dedicated guide. For the major 
 
 ## Activity Page
 
-The Activity page (`/activity`) is your command center for monitoring what Narratorr is doing. It has two sections:
+The Activity page (`/activity`) is your command center for monitoring what Narratorr is doing. It has two tabs — **Active** and **History**.
 
-**Active Downloads** — shows all in-progress downloads with real-time progress bars (via SSE streaming). Each card shows download speed, ETA, and progress percentage. Downloads in `pending_review` status show quality gate data with **Approve**, **Reject**, and **Reject & Search** buttons. See [Quality Gates](/guides/quality-gates/) for details.
+**Active** — shows all in-progress downloads with real-time progress bars (via SSE streaming). Each card shows download speed, ETA, and progress percentage. Downloads in `pending_review` status show quality gate data with **Approve**, **Reject**, and **Reject & Search** buttons. See [Quality Gates](/guides/quality-gates/) for details.
+
+The **History** tab holds two sections:
+
+**Import History** — a durable record of your Manual and Library import runs, newest first. Each card shows the run's status, its source and mode, when it ran, and its item counts — queued, held, skipped, and failed; expand a card to see the items that needed attention. The last-import panel on the import pages and the attention banner on the Library page both link to the matching card here. Older runs keep their summary card after their per-item details expire.
 
 **Event History** — a chronological log of everything that's happened:
 
@@ -60,9 +64,15 @@ When you search for a book (manually, via scheduled search, or RSS), Narratorr:
 3. Enriches each result with language (detects and normalizes the release language)
 4. Filters multi-part Usenet posts
 5. Applies [quality gate filters](/guides/quality-gates/#search-time-filters) (reject/required words, format, min seeders, size floors/caps, grab floor) and partitions results by language
-6. Ranks results by quality (MB/hour), with protocol preference as a tiebreaker
+6. Ranks results by match score first, then — under the default **accuracy** search priority (Settings > Search) — whether the narrator matches the book's, then quality (MB/hour), with protocol preference, language, indexer priority, grab count, and seeders as successive tiebreakers
 
 The scheduled search job runs on a configurable interval (Settings > Search > Interval, default: 360 minutes / 6 hours) and searches for all books with status `wanted`.
+
+## Search Releases
+
+To pick a release yourself instead of letting auto-grab decide, open **Search Releases** from a book's detail page or from its context menu on the Library page. Results stream in per indexer, pass through the same blacklist, language, and quality filters as the automatic pipeline, and are listed with their quality data — click **Grab** to send one to your download client.
+
+The search query is pre-filled from the book (title plus primary author) but stays editable throughout. If the derived query comes up empty — a subtitle the indexer doesn't know, unusual punctuation — edit the query and click **Search** to re-run it against your indexers.
 
 ## Prowlarr Sync
 
@@ -86,7 +96,7 @@ Narratorr periodically runs health checks and displays results in the sidebar. C
 | **Download Clients** | Tests each enabled client's connection |
 | **Library Root** | Verifies the library path exists and is writable |
 | **Disk Space** | Warns when free space drops below threshold |
-| **ffmpeg** | Verifies ffmpeg is accessible (if configured) |
+| **ffmpeg** | Probes the auto-detected ffmpeg binary. A missing ffmpeg is only reported as an error when an automation that needs it (auto-merge or tag embedding) is enabled — otherwise the check stays silent |
 | **Hardcover** | Tests the Hardcover API connection when a Hardcover API key is configured in Settings > Search > Metadata (skipped if no key is set) |
 | **Stuck Downloads** | Flags downloads with no progress for over an hour |
 
@@ -144,9 +154,9 @@ Click any book to go to its detail page.
 
 ## Version Check
 
-Narratorr periodically checks GitHub for new releases. When a newer version is available, a notification banner appears in the UI with a link to the release page.
+Narratorr periodically checks GitHub for new releases. When a newer version is available, a warning appears in the health status — the sidebar health indicator and the health dashboard under **Settings > System** — with a link to the release notes (develop builds get a compare-changes link instead).
 
-You can dismiss the notification for a specific version — it won't reappear until an even newer version is available. The dismissed version is stored automatically when you dismiss the banner; it is internal state, not a field you edit in Settings.
+There is nothing to dismiss: the warning clears on its own once the running version catches up to the latest release.
 
 ## Pagination
 

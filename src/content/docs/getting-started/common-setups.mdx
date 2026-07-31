@@ -148,8 +148,8 @@ services:
 **Key points:**
 - Transmission RPC: `http://localhost:9091` (default port 9091)
 - Transmission doesn't support categories — downloads go to the default directory
-- Plex is typically already running separately. Point a Plex audiobook library at `/data/audiobooks` and enable periodic scanning
-- Plex doesn't auto-detect new files like Audiobookshelf — you'll need to trigger a library scan manually or on a schedule
+- Plex is typically already running separately. Point a Plex audiobook library at `/data/audiobooks`
+- Plex doesn't auto-detect new files like Audiobookshelf — add the built-in [Plex Connector](/guides/connectors/) (**Settings > Connectors**) so Narratorr triggers a Plex library scan automatically on each import, or enable periodic scanning in Plex
 
 ## Narratorr Standalone
 

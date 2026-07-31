@@ -5,12 +5,12 @@ description: Merge multi-file downloads and convert audio formats using ffmpeg.
 
 Narratorr can process audiobook files after import — merging multiple files into a single audiobook file and converting between formats. This is powered by ffmpeg.
 
-Processing is manual by default: files are imported as-is, and you then trigger processing yourself — a per-book **Merge** from the book page or a bulk **Convert** job. The one exception is the opt-in **Merge multi-file downloads** toggle, which merges completed downloads automatically after import (see [Automatic merge after download](#automatic-merge-after-download)). Processing runs only when an ffmpeg path is configured — there is no master on/off switch.
+Processing is manual by default: files are imported as-is, and you then trigger processing yourself — a per-book **Merge** from the book page or a bulk **Convert** job. The one exception is the opt-in **Auto-merge multi-file downloads** toggle, which merges completed downloads automatically after import (see [Automatic merge after download](#automatic-merge-after-download)). Processing runs only when ffmpeg is detected on the system (override with the `FFMPEG_PATH` environment variable) — there is no master on/off switch.
 
 ## Requirements
 
 - **Docker:** ffmpeg is pre-installed in the production image. No setup needed.
-- **Manual install:** Install ffmpeg and configure its path in **Settings > Post Processing > ffmpeg Path**.
+- **Manual install:** Install ffmpeg so it's on the system `PATH` — Narratorr detects it automatically at startup. To force a specific binary, set the `FFMPEG_PATH` environment variable. Detection status is shown in **Settings > Audio Tools**.
 
 :::note[FFmpeg 8 for xHE-AAC]
 The Docker image ships **FFmpeg 8**, which is required to decode **xHE-AAC (USAC)** audiobooks — a newer Audible codec. If you run a manual install with an older FFmpeg (7 or earlier), xHE-AAC releases can't be decoded: narratorr detects the version at startup, logs a warning, and holds any xHE-AAC book for review rather than importing something it can't read. Every other format works fine on older FFmpeg. Docker users are already on 8 and need to do nothing.
@@ -18,23 +18,35 @@ The Docker image ships **FFmpeg 8**, which is required to decode **xHE-AAC (USAC
 
 ## Settings
 
-Configure audio processing in **Settings > Post Processing**.
+Audio processing is configured on two pages: the merge/convert engine (the "how") lives in **Settings > Audio Tools**, and the after-download automations plus the custom script (the "when") live in **Settings > Post Processing**.
+
+### Audio Tools
+
+The **Merge & Convert** card in **Settings > Audio Tools** shows ffmpeg's detection status and configures the engine used by the per-book **Merge**, the bulk **Convert** job, and auto-merge:
 
 | Setting | Description |
 |---------|-------------|
-| **ffmpeg Path** | Path to the ffmpeg binary. Auto-detected in Docker. Processing runs only when this is set. |
 | **Output Format** | Target format: `m4b` (chapters supported) or `mp3` (no chapter support). Default: `m4b`. Applies to both Merge and bulk Convert output. |
-| **Keep Original Bitrate** | Drop the target-bitrate cap and re-encode at (up to) the source bitrate instead of the target bitrate. Default: on. |
+| **Keep Original Bitrate** | Don't force a target bitrate — no bitrate is passed to ffmpeg, so the encoder's default rate control governs the output. Default: on. |
 | **Target Bitrate** | Target bitrate in kbps (32–512). Default: 128. Ignored when keep original bitrate is enabled. |
 | **Merge Behavior** | When the bulk **Convert** job merges multiple files: Always / Only when multiple files / Never. Default: "Only when multiple files". (The per-book **Merge** action always merges — see note below.) |
 | **Max Concurrent Jobs** | Maximum number of merge jobs that run at once — manual and automatic merges share this cap (1–8). Default: 1. |
-| **Merge multi-file downloads** | In the **After Download / Import** group: automatically merge a completed download's audio files into a single file after import. Downloads only — never Library Import or Manual Import. Default: off. See [Automatic merge after download](#automatic-merge-after-download). |
-| **Post-Processing Script** | Absolute path to a script run after each successful import. Receives `NARRATORR_BOOK_TITLE`, `NARRATORR_BOOK_AUTHOR`, `NARRATORR_IMPORT_PATH`, and `NARRATORR_IMPORT_FILE_COUNT` env vars. |
-| **Script Timeout** | Maximum seconds the post-processing script may run. Default: 300. Required when a script is set. |
+
+There is no ffmpeg path setting — ffmpeg is auto-detected on any install, Docker or manual, and the `FFMPEG_PATH` environment variable forces a specific binary (see [Requirements](#requirements)).
 
 :::note
 **Output Format** applies everywhere — selecting `mp3` re-encodes output to MP3 (no chapter markers). **Merge Behavior** governs the bulk **Convert** job only. The per-book **Merge** action always merges, regardless of this setting, because clicking "Merge" is an explicit instruction to combine the files.
 :::
+
+### Post Processing
+
+**Settings > Post Processing** holds the automations that run on their own after a download lands, plus the custom script:
+
+| Setting | Description |
+|---------|-------------|
+| **Auto-merge multi-file downloads** | On the Post Processing card: automatically merge a completed download's audio files into a single file after import. Downloads only — never Library Import or Manual Import. Default: off. See [Automatic merge after download](#automatic-merge-after-download). |
+| **Post-Processing Script** | Absolute path to a script run after each successful import. Receives `NARRATORR_BOOK_TITLE`, `NARRATORR_BOOK_AUTHOR`, `NARRATORR_IMPORT_PATH`, and `NARRATORR_IMPORT_FILE_COUNT` env vars. |
+| **Script Timeout** | Maximum seconds the post-processing script may run. Default: 300. Required when a script is set. |
 
 ### Tag Embedding
 
@@ -54,18 +66,18 @@ The per-book **Merge** action only runs on books that have 2 or more top-level a
 
 ## How It Works
 
-Import places the downloaded files into the library folder as-is — no processing happens automatically unless you've opted in with **Merge multi-file downloads** (below). You then trigger processing on demand:
+Import places the downloaded files into the library folder as-is — no processing happens automatically unless you've opted in with **Auto-merge multi-file downloads** (below). You then trigger processing on demand:
 
 1. From a book's page, start a **Merge** (requires 2+ audio files). The job is queued and runs under a concurrency limit, with progress reporting.
 2. Merge copies the files to a staging directory and runs ffmpeg to combine them in order.
 3. The output is encoded to the configured Output Format (M4B by default) at the configured bitrate (unless keep original bitrate is on).
 4. Narratorr verifies the output, then swaps it into the book folder and deletes the originals.
 
-A bulk **Convert** job (from settings) applies the same processing across multiple books.
+A bulk **Convert** job applies the same processing across multiple books. It currently has no UI trigger — start it via the API (`POST /api/books/bulk/convert`).
 
 ## Automatic merge after download
 
-The **Merge multi-file downloads** toggle (in the **After Download / Import** group of **Settings > Post Processing**, default off) opts completed downloads into an automatic merge — the same job the per-book **Merge** button runs, kicked off for you once the files land in your library.
+The **Auto-merge multi-file downloads** toggle (on the Post Processing card of **Settings > Post Processing**, default off) opts completed downloads into an automatic merge — the same job the per-book **Merge** button runs, kicked off for you once the files land in your library.
 
 - **Downloads only.** It fires only when a download finishes importing — never for Library Import or Manual Import.
 - **Multi-file books only.** The imported folder must contain 2 or more top-level audio files; single-file downloads are skipped.
@@ -82,11 +94,11 @@ The **Merge multi-file downloads** toggle (in the **After Download / Import** gr
 
 For spoken word, 64–128 kbps is the sweet spot. Higher bitrates increase file size without perceptible quality improvement for narration.
 
-When **keep original bitrate** is enabled, the bitrate setting is ignored. This does not mean a lossless copy — files are still re-encoded, but the target-bitrate cap is dropped so the output is encoded at (up to) the source bitrate. The effective bitrate is capped at the lower of the source and target to prevent upsampling. Use this when your source files are already at your preferred quality and you don't want to force a lower target bitrate.
+When **keep original bitrate** is off, the effective bitrate is capped at the lower of the source and target to prevent upsampling. When it's enabled, the bitrate setting is ignored — no bitrate is passed to ffmpeg at all, and the encoder's default rate control governs the output. This does not mean a lossless copy: files are still re-encoded. Use it when your source files are already at your preferred quality and you don't want to force a lower target bitrate.
 
 ## Troubleshooting
 
-- **"ffmpeg not found"** — install ffmpeg or verify the path in Settings > Post Processing
+- **"ffmpeg not found"** — install ffmpeg (or set the `FFMPEG_PATH` environment variable) and check the detection status in Settings > Audio Tools
 - **Processing takes a long time** — merging large audiobooks (20+ hours) is CPU-intensive. This is normal.
 - **Output file is much larger/smaller than expected** — check your bitrate setting. A high bitrate on a low-quality source won't improve quality but will increase size.
 - **"Unsupported format"** — the source file uses a codec ffmpeg can't decode. Check ffmpeg's supported formats.

@@ -1,0 +1,40 @@
+---
+title: Library Import
+description: Register audiobooks already inside your library path, with no file operations.
+---
+
+Library Import registers books that already live inside your library folder — it indexes them in place. Nothing is copied, moved, renamed, or deleted: your files stay exactly where they are, and Narratorr creates the records that make them show up in your library.
+
+Access it from the **Library Actions** menu on the Library page and choose **Import Existing Library**, or go directly to `/library-import`. (Pointing [Manual Import](/guides/manual-import/) at a folder inside your library path sends you here too.)
+
+## Library Import vs Manual Import
+
+The two flows split on one question: where do the files live *now*?
+
+| | Manual Import | Library Import |
+|---|---|---|
+| Source folder | Outside the library path | Inside the library path |
+| File operations | Copies or moves files into the library | None — registers in place |
+| Folder naming | Applies your [folder format](/guides/folder-format/) | Keeps folders exactly as they are |
+
+Use Library Import when the audiobooks are already organized where you want them — a collection you built before Narratorr, or a library folder carried over from another tool.
+
+## Workflow
+
+The page scans your configured library path automatically when it opens. Narratorr:
+
+1. Discovers each folder containing audio files
+2. Matches each folder against metadata, using the same confidence cards as Manual Import (**Matched**, **Review**, **No Match**)
+3. Flags folders already registered in your library as *existing* — they're hidden by default (a toggle shows them) and excluded from registration
+
+Review the list, edit any book whose match isn't right, then click **Import**. Selected books are registered against their current folders, and each book's metadata is enriched after registration. Unmatched books can still be registered after you enter the metadata by hand. As with Manual Import, a book Narratorr can't confidently classify as a new recording vs. one you already own is held for review after the run rather than registered or skipped.
+
+When every detected folder is already registered, the page shows **All caught up** instead of a list.
+
+## What Touches the Disk
+
+Nothing, with one opt-in exception: when the [OPF metadata sidecar](/guides/tagging/#opf-metadata-sidecar) setting is on, registration writes a `metadata.opf` into each book's folder, the same as any other import. Tag embedding, file renaming, and post-processing scripts never run on Library Import.
+
+:::note
+A multi-disc set stored as separate disc folders can't be registered in place — there's no single folder to register. Import it through [Manual Import](/guides/manual-import/) with copy or move so the discs flatten into one book folder.
+:::
